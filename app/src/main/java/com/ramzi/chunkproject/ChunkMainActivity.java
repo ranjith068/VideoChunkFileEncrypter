@@ -28,6 +28,7 @@ import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedExceptio
 import com.obsez.android.lib.filechooser.ChooserDialog;
 import com.ramzi.chunkproject.conversion.FFmpegConversion;
 import com.ramzi.chunkproject.conversion.interfaces.ConversionCallback;
+import com.ramzi.chunkproject.utils.FFmpegOutputUtil;
 import com.ramzi.chunkproject.utils.HelperUtils;
 
 import java.io.File;
@@ -35,6 +36,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by oliveboard on 18/1/19.
@@ -100,12 +102,12 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
     public void startChunkConversion(View v) {
         String urlPath;
         try {
-             urlPath = URLEncoder.encode(selectedVideotextView.getText().toString(),"UTF-8");
+            urlPath = URLEncoder.encode(selectedVideotextView.getText().toString(), "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            urlPath=selectedVideotextView.getText().toString();
+            urlPath = selectedVideotextView.getText().toString();
         }
-        File videoFile=new File(selectedVideotextView.getText().toString());
+        final File videoFile = new File(selectedVideotextView.getText().toString());
         if (videoFile.exists()) {
             long timeInMillisec = 0;
             try {
@@ -114,58 +116,35 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
                 retriever.setDataSource(getApplicationContext(), Uri.fromFile(videoFile));
                 String time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
                 timeInMillisec = Long.parseLong(time);
-                Log.d(TAG, "totalVideoTime" + time);
+                Log.d(TAG, "totalVideoTime METADATA" + time);
 
                 retriever.release();
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            new FFmpegConversion(ChunkMainActivity.this,getApplicationContext(),videoFile.getAbsolutePath(),timeInMillisec,HelperUtils.finalDestination(videoFile.getName()+".partfile")).spliteTimeAndStart(0,0);
-        }
 
+            final long finalTimeInMillisec = timeInMillisec;
+            FFmpegOutputUtil.getMediaInfo(this, videoFile.getAbsolutePath(), new FFmpegOutputUtil.GetMetaData() {
+                @Override
+                public void onMetadataRetrieved(Map<String, String> map) {
 
-//            timeInMillisec=2
-           /* if (timeInMillisec > 30000) {
+                        long ffmpegTimeDuration=HelperUtils.getTheDurationInMillsecound(map.get("Duration"));
+                        if(ffmpegTimeDuration!=-1)
+                        {
+                            new FFmpegConversion(ChunkMainActivity.this, getApplicationContext(), videoFile.getAbsolutePath(), ffmpegTimeDuration, HelperUtils.finalDestination(videoFile.getName() + ".partfile")).spliteTimeAndStart(0, 0);
 
-                String extension = selectedVideotextView.getText().toString().substring(selectedVideotextView.getText().toString().lastIndexOf("."));
-                String fullOutput = outputDirectory + System.currentTimeMillis() + finalName + extension;
-                Log.d(TAG, "Fulloutput" + fullOutput);
-//                String silenamebase="\"["+selectedVideotextView.getText().toString()+"]\"";
-                List<String> commandList = new LinkedList<>();
-                commandList.add("-i");
-                commandList.add(selectedVideotextView.getText().toString());
-                commandList.add("-acodec");
-                commandList.add("copy");
-                commandList.add("-vcodec");
-                commandList.add("copy");
-                commandList.add("-ss");
-                commandList.add("00:00:10");
-                commandList.add("-t");
-                commandList.add("00:00:20");
-                commandList.add(fullOutput);
-//                commandList.add("-i");
-//                String cmd = "-i " + silenamebase + " -acodec copy -vcodec copy -ss 00:00:10 -t 00:00:20 " + fullOutput;
+                        }
+                        else
+                        {
+                            new FFmpegConversion(ChunkMainActivity.this, getApplicationContext(), videoFile.getAbsolutePath(), finalTimeInMillisec, HelperUtils.finalDestination(videoFile.getName() + ".partfile")).spliteTimeAndStart(0, 0);
 
-//                String[] command = cmd.split(" ");
-                String[] command  = commandList.toArray(new String[commandList.size()]);
-                if (command.length != 0) {
-                    Log.d(TAG, "comment " + command);
+                        }
 
-                    execFFmpegBinary(command);
-                } else {
-                    Toast.makeText(ChunkMainActivity.this, getString(R.string.empty_command_toast), Toast.LENGTH_LONG).show();
                 }
-
-            } else {
-                Toast.makeText(getApplicationContext(), "File Not Found...", Toast.LENGTH_SHORT).show();
-            }
+            });
         }
-        else
-        {
-            Toast.makeText(getApplicationContext(), "video Less that 30 sec", Toast.LENGTH_SHORT).show();
 
-        }*/
 
     }
 
@@ -262,7 +241,7 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
 //        TextView textView = new TextView(Home.this);
 //        textView.setText(text);
 //        outputLayout.addView(textView);
-        Log.d("status",text);
+        Log.d("status", text);
     }
 
     private void showUnsupportedExceptionDialog() {
