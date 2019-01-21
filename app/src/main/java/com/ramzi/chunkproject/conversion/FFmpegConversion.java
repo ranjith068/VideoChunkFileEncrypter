@@ -50,7 +50,7 @@ public class FFmpegConversion {
 
 
         commandList.clear();
-        commandList.add("-i");
+      /*  commandList.add("-i");
         commandList.add(input);
         commandList.add("-acodec");
         commandList.add("copy");
@@ -60,10 +60,56 @@ public class FFmpegConversion {
         commandList.add(HelperUtils.getStartTimeStamp(startTime));
         commandList.add("-t");
         commandList.add(HelperUtils.SECOUND_TO_SPLIT_TIMESTAMP);
+        commandList.add(destinationDirectory+"/"+part+HelperUtils.getFileExtention(input));*/
+
+//        $ ffmpeg -i source.mkv -ss 01:02:37.754 -map_chapters -1 -c:v libx264-c:a copy -crf 18 -t 00:04:52.292 output.mkv
+        commandList.add("-i");
+        commandList.add(input);
+        commandList.add("-ss");
+        commandList.add(HelperUtils.getStartTimeStamp(startTime));
+        commandList.add("-map_chapters");
+        commandList.add("-1");
+        commandList.add("-c:v");
+        commandList.add("libx264");
+        commandList.add("-c:a");
+        commandList.add("copy");
+//        commandList.add("-crf");
+//        commandList.add("300");//18
+        commandList.add("-t");
+        commandList.add(HelperUtils.SECOUND_TO_SPLIT_TIMESTAMP);
         commandList.add(destinationDirectory+"/"+part+HelperUtils.getFileExtention(input));
+
+        //ffmpeg -i input.mp4 -vcodec copy -acodec copy -copyinkf -ss 00:36:18 -to 00:39:50 output.mp4
+
+       /* commandList.add("-i");
+        commandList.add(input);
+        commandList.add("-vcodec");
+        commandList.add("copy");
+        commandList.add("-acodec");
+        commandList.add("copy");
+        commandList.add("-copyinkf");
+        commandList.add("-ss");
+        commandList.add(HelperUtils.getStartTimeStamp(startTime));
+        commandList.add("-to");
+        commandList.add(HelperUtils.getStartTimeStamp((startTime+HelperUtils.SECOUND_TO_SPLIT)));
+        commandList.add(destinationDirectory+"/"+part+HelperUtils.getFileExtention(input));*/
+
+
+//        ffmpeg -i source.mp4 -ss 577.92 -t 11.98 -c copy -map 0 clip1.mp4
+//        commandList.add("-i");
+//        commandList.add(input);
+//        commandList.add("-ss");
+//        commandList.add(HelperUtils.getStartTimeStamp(startTime));
+//        commandList.add("-t");
+//        commandList.add(HelperUtils.SECOUND_TO_SPLIT_TIMESTAMP);
+//        commandList.add("copy");
+//        commandList.add("-map");
+//        commandList.add("0");
+//        commandList.add(destinationDirectory+"/"+part+HelperUtils.getFileExtention(input));
+
         String[] command  = commandList.toArray(new String[commandList.size()]);
         if (command.length != 0) {
-            Log.d(TAG, "comment " + command);
+            Log.d(TAG, "commentzzz " + command.toString());
 
             execFFmpegBinary(command,part,totalPart,startTime);
         } else {
@@ -98,7 +144,7 @@ public class FFmpegConversion {
 
                 @Override
                 public void onProgress(String s) {
-                    Log.d(TAG, "Started command : ffmpeg " + command);
+                    Log.d(TAG, "Started command : ffmpeg " + s);
 //                    addTextViewToLayout("progress : "+s);
 //                    statusTextView.setText("Processing\n" + s);
                     if(conversionCallback!=null)

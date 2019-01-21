@@ -13,8 +13,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class HelperUtils {
 
-    public static long SECOUND_TO_SPLIT=300000;
-    public static String SECOUND_TO_SPLIT_TIMESTAMP="00:05:00";
+    public static long SECOUND_TO_SPLIT=60000;
+    public static String SECOUND_TO_SPLIT_TIMESTAMP="00:01:00";
     private static HelperUtils instance;
     public static HelperUtils getInstance() {
         if (instance == null) {
