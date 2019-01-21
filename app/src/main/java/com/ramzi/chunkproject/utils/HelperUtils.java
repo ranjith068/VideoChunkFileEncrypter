@@ -31,7 +31,7 @@ public class HelperUtils {
 
     public static String finalDestination(String directory)
     {
-        File finalStorage =new File(Environment.getExternalStorageDirectory()+File.separator+directory);
+        File finalStorage =new File(Environment.getExternalStorageDirectory()+File.separator+"CHUNKPROJECT"+File.separator+directory);
         if(!finalStorage.exists())
         {
             finalStorage.mkdirs();
