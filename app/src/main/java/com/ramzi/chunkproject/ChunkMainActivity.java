@@ -26,6 +26,9 @@ import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
 import com.obsez.android.lib.filechooser.ChooserDialog;
+import com.ramzi.chunkproject.conversion.FFmpegConversion;
+import com.ramzi.chunkproject.conversion.interfaces.ConversionCallback;
+import com.ramzi.chunkproject.utils.HelperUtils;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -38,7 +41,7 @@ import java.util.List;
  *
  * @auther Ramesh M Nair
  */
-public class ChunkMainActivity extends AppCompatActivity {
+public class ChunkMainActivity extends AppCompatActivity implements ConversionCallback {
     TextView selectedVideotextView, statusTextView;
     public static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1001;
     public static final String TAG = "ChunkCreator";
@@ -110,15 +113,20 @@ public class ChunkMainActivity extends AppCompatActivity {
 //use one of overloaded setDataSource() functions to set your data source
                 retriever.setDataSource(getApplicationContext(), Uri.fromFile(videoFile));
                 String time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-                 timeInMillisec = Long.parseLong(time);
+                timeInMillisec = Long.parseLong(time);
                 Log.d(TAG, "totalVideoTime" + time);
 
                 retriever.release();
             } catch (Exception e) {
-                 e.printStackTrace();
+                e.printStackTrace();
             }
+
+            new FFmpegConversion(ChunkMainActivity.this,getApplicationContext(),videoFile.getAbsolutePath(),timeInMillisec,HelperUtils.finalDestination(videoFile.getName()+".partfile")).spliteTimeAndStart(0,0);
+        }
+
+
 //            timeInMillisec=2
-            if (timeInMillisec > 30000) {
+           /* if (timeInMillisec > 30000) {
 
                 String extension = selectedVideotextView.getText().toString().substring(selectedVideotextView.getText().toString().lastIndexOf("."));
                 String fullOutput = outputDirectory + System.currentTimeMillis() + finalName + extension;
@@ -157,7 +165,7 @@ public class ChunkMainActivity extends AppCompatActivity {
         {
             Toast.makeText(getApplicationContext(), "video Less that 30 sec", Toast.LENGTH_SHORT).show();
 
-        }
+        }*/
 
     }
 
@@ -275,4 +283,8 @@ public class ChunkMainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void conversionStatus(String message) {
+        statusTextView.setText(message);
+    }
 }
