@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
@@ -28,6 +29,7 @@ import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedExceptio
 import com.obsez.android.lib.filechooser.ChooserDialog;
 import com.ramzi.chunkproject.conversion.FFmpegConversion;
 import com.ramzi.chunkproject.conversion.interfaces.ConversionCallback;
+import com.ramzi.chunkproject.utils.Constants;
 import com.ramzi.chunkproject.utils.FFmpegOutputUtil;
 import com.ramzi.chunkproject.utils.HelperUtils;
 
@@ -44,7 +46,7 @@ import java.util.Map;
  * @auther Ramesh M Nair
  */
 public class ChunkMainActivity extends AppCompatActivity implements ConversionCallback {
-    TextView selectedVideotextView, statusTextView;
+    TextView selectedVideotextView, statusTextView,selectedChunkFileTextView;
     public static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1001;
     public static final String TAG = "ChunkCreator";
     String outputDirectory = Environment.getExternalStorageDirectory().toString() + "/";
@@ -56,6 +58,7 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
         setContentView(R.layout.activity_main);
         selectedVideotextView = (TextView) findViewById(R.id.selected_file_tv);
         statusTextView = (TextView) findViewById(R.id.chunk_status_tv);
+        selectedChunkFileTextView=(TextView)findViewById(R.id.selected_chunk_tv);
         loadFFMpegBinary();
         checkPermisson(ChunkMainActivity.this);
     }
@@ -151,10 +154,32 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
 
     public void selectChunkFile(View v) {
 
+if(new File(Environment.getExternalStorageDirectory() +
+        File.separator + Constants.CHUNKDIR).exists()) {
+    new ChooserDialog().with(this)
+            .withFilter(true, false)
+            .withStartFile(Environment.getExternalStorageDirectory() +
+                    File.separator + Constants.CHUNKDIR)
+            .withChosenListener(new ChooserDialog.Result() {
+                @Override
+                public void onChoosePath(String path, File pathFile) {
+                    selectedChunkFileTextView.setText(path);
+//                            Toast.makeText(MainActivity.this, "FOLDER: " + path, Toast.LENGTH_SHORT).show();
+                }
+            })
+            .build()
+            .show();
+}
+
     }
 
 
     public void startPlayChunk(View v) {
+
+        if(new File(selectedChunkFileTextView.getText().toString()).exists())
+        {
+            startActivity(new Intent(getApplicationContext(),DecryptedExoPlayerActivity.class).putExtra("file_dir",selectedChunkFileTextView.getText().toString()));
+        }
 
     }
 

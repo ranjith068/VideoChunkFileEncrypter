@@ -30,6 +30,8 @@ import com.google.android.exoplayer2.ui.PlaybackControlView;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.*;
 import com.ramzi.chunkproject.encryption.CipherCommon;
+import com.ramzi.chunkproject.player.GatheringFilePiecesAsync;
+import com.ramzi.chunkproject.player.MediaFileCallback;
 import com.ramzi.chunkproject.player.encryptionsource.EncryptedFileDataSourceFactory;
 
 import javax.crypto.Cipher;
@@ -38,7 +40,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 
 
-public class ExoPlayerActivity extends AppCompatActivity {
+public class DecryptedExoPlayerActivity extends AppCompatActivity implements MediaFileCallback {
 
     private final String STATE_RESUME_WINDOW = "resumeWindow";
     private final String STATE_RESUME_POSITION = "resumePosition";
@@ -58,15 +60,16 @@ public class ExoPlayerActivity extends AppCompatActivity {
     private Cipher mCipher;
     private SecretKeySpec mSecretKeySpec;
     private IvParameterSpec mIvParameterSpec;
+    SimpleExoPlayer player;
 
-    private static final String ENCRYPTED_FILE_NAME = "0.mp4.enc";
-    private static final String ENCRYPTED_FILE_NAME2 = "1.mp4.enc";
-    private static final String ENCRYPTED_FILE_NAME3 = "2.mp4.enc";
-    private static final String ENCRYPTED_FILE_NAME4 = "3.mp4.enc";
-    private File mEncryptedFile;
-    private File mEncryptedFile2;
-    private File mEncryptedFile3;
-    private File mEncryptedFile4;
+//    private static final String ENCRYPTED_FILE_NAME = "0.mp4.enc";
+//    private static final String ENCRYPTED_FILE_NAME2 = "1.mp4.enc";
+//    private static final String ENCRYPTED_FILE_NAME3 = "2.mp4.enc";
+//    private static final String ENCRYPTED_FILE_NAME4 = "3.mp4.enc";
+//    private File mEncryptedFile;
+//    private File mEncryptedFile2;
+//    private File mEncryptedFile3;
+//    private File mEncryptedFile4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,10 +93,10 @@ public class ExoPlayerActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        mEncryptedFile = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME);
-        mEncryptedFile2 = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME2);
-        mEncryptedFile3 = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME3);
-        mEncryptedFile4 = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME4);
+//        mEncryptedFile = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME);
+//        mEncryptedFile2 = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME2);
+//        mEncryptedFile3 = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME3);
+//        mEncryptedFile4 = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME4);
 
     }
 
@@ -125,7 +128,7 @@ public class ExoPlayerActivity extends AppCompatActivity {
 
         ((ViewGroup) mExoPlayerView.getParent()).removeView(mExoPlayerView);
         mFullScreenDialog.addContentView(mExoPlayerView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(ExoPlayerActivity.this, R.drawable.ic_fullscreen_skrink));
+        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(DecryptedExoPlayerActivity.this, R.drawable.ic_fullscreen_skrink));
         mExoPlayerFullscreen = true;
         mFullScreenDialog.show();
     }
@@ -137,7 +140,7 @@ public class ExoPlayerActivity extends AppCompatActivity {
         ((FrameLayout) findViewById(R.id.main_media_frame)).addView(mExoPlayerView);
         mExoPlayerFullscreen = false;
         mFullScreenDialog.dismiss();
-        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(ExoPlayerActivity.this, R.drawable.ic_fullscreen_expand));
+        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(DecryptedExoPlayerActivity.this, R.drawable.ic_fullscreen_expand));
     }
 
 
@@ -166,7 +169,7 @@ public class ExoPlayerActivity extends AppCompatActivity {
         TrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory();
 
         TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
-        SimpleExoPlayer player=ExoPlayerFactory.newSimpleInstance(this,trackSelector);
+         player=ExoPlayerFactory.newSimpleInstance(this,trackSelector);
         mExoPlayerView.setPlayer(player);
 
         boolean haveResumePosition = mResumeWindow != C.INDEX_UNSET;
@@ -175,7 +178,7 @@ public class ExoPlayerActivity extends AppCompatActivity {
             player.seekTo(mResumeWindow, mResumePosition);
         }
 
-        player.prepare(mediaSourcess);
+    /*    player.prepare(mediaSourcess);
         player.setPlayWhenReady(true);
 
         final Handler handler = new Handler();
@@ -186,7 +189,7 @@ public class ExoPlayerActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(),"Changing...",1).show();
                 player.seekTo(3,10000);
             }
-        }, 5000);
+        }, 5000);*/
 
     }
 
@@ -205,11 +208,11 @@ public class ExoPlayerActivity extends AppCompatActivity {
             DataSource.Factory dataSourceFactory = new EncryptedFileDataSourceFactory(mCipher, mSecretKeySpec, mIvParameterSpec, bandwidthMeter);
             ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
 
-                Log.d("Playing location", "Data" + mEncryptedFile.getAbsolutePath());
-                Uri uri = Uri.fromFile(mEncryptedFile);
-                Uri uri2 = Uri.fromFile(mEncryptedFile2);
-                Uri uri3 = Uri.fromFile(mEncryptedFile3);
-                Uri uri4 = Uri.fromFile(mEncryptedFile4);
+//                Log.d("Playing location", "Data" + mEncryptedFile.getAbsolutePath());
+//                Uri uri = Uri.fromFile(mEncryptedFile);
+//                Uri uri2 = Uri.fromFile(mEncryptedFile2);
+//                Uri uri3 = Uri.fromFile(mEncryptedFile3);
+//                Uri uri4 = Uri.fromFile(mEncryptedFile4);
 //            DefaultBandwidthMeter  defaultBandwidthMeter = new DefaultBandwidthMeter();
 //
 //            DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this,
@@ -220,7 +223,7 @@ public class ExoPlayerActivity extends AppCompatActivity {
 //
 //            MediaSource videoSource4 = new ExtractorMediaSource(uri4, dataSourceFactory, extractorsFactory, null, null);
 
-                MediaSource videoSource = new ExtractorMediaSource.Factory(dataSourceFactory).setExtractorsFactory(extractorsFactory)
+               /* MediaSource videoSource = new ExtractorMediaSource.Factory(dataSourceFactory).setExtractorsFactory(extractorsFactory)
                         .createMediaSource(uri);
                 MediaSource videoSource2 = new ExtractorMediaSource.Factory(dataSourceFactory).setExtractorsFactory(extractorsFactory)
                         .createMediaSource(uri2);
@@ -236,17 +239,22 @@ public class ExoPlayerActivity extends AppCompatActivity {
                 mediaSourcesToLoad[1] = videoSource2;
                 mediaSourcesToLoad[2] = videoSource3;
                 mediaSourcesToLoad[3] = videoSource4;
-                 mediaSourcess = new ConcatenatingMediaSource(mediaSourcesToLoad);
+                 mediaSourcess = new ConcatenatingMediaSource(mediaSourcesToLoad);*/
+               File chunkFileDirectory=new File(getIntent().getExtras().getString("file_dir"));
+               new GatheringFilePiecesAsync(chunkFileDirectory,DecryptedExoPlayerActivity.this,dataSourceFactory,extractorsFactory).execute();
 
 
         }
+        else
+        {
+           initExoPlayer();
+        }
 
-        initExoPlayer();
 
         if (mExoPlayerFullscreen) {
             ((ViewGroup) mExoPlayerView.getParent()).removeView(mExoPlayerView);
             mFullScreenDialog.addContentView(mExoPlayerView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(ExoPlayerActivity.this, R.drawable.ic_fullscreen_skrink));
+            mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(DecryptedExoPlayerActivity.this, R.drawable.ic_fullscreen_skrink));
             mFullScreenDialog.show();
         }
     }
@@ -269,4 +277,25 @@ public class ExoPlayerActivity extends AppCompatActivity {
             mFullScreenDialog.dismiss();
     }
 
+    @Override
+    public void onMediaFileRecieve(ConcatenatingMediaSource mediaSource, String filename, long totalTIme) {
+        if(mediaSource!=null)
+        {
+            Toast.makeText(getApplicationContext(),"Media player is playing....",Toast.LENGTH_SHORT).show();
+            initExoPlayer();
+
+            if (mExoPlayerView != null && player != null) {
+
+                player.prepare(mediaSource);
+                player.setPlayWhenReady(true);
+            }
+        }
+
+    }
+
+    @Override
+    public void onMediaFileRecieve(boolean status) {
+        Toast.makeText(getApplicationContext(),"Gathering files failed",Toast.LENGTH_SHORT).show();
+
+    }
 }

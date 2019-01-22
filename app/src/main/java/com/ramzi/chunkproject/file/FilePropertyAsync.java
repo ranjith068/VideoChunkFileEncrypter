@@ -24,12 +24,14 @@ public class FilePropertyAsync extends AsyncTask<Void,Void,Void> {
     long videoLength;
     EncryptionCallback encryptionCallback;
     boolean encrypted=false;
-    public FilePropertyAsync(String chunkFileDirName,int totalFileParts,long videoLength,EncryptionCallback encryptionCallback)
+    String extention;
+    public FilePropertyAsync(String chunkFileDirName,int totalFileParts,long videoLength,EncryptionCallback encryptionCallback,String extention)
     {
         chunkFileDir=new File(chunkFileDirName);
         this.totalFileParts=totalFileParts;
         this.videoLength=videoLength;
         this.encryptionCallback=encryptionCallback;
+        this.extention=extention;
     }
 
     @Override
@@ -40,7 +42,8 @@ public class FilePropertyAsync extends AsyncTask<Void,Void,Void> {
             Properties prop = new Properties();
             prop.setProperty("filename", chunkFileDir.getName());
             prop.setProperty("part_count", totalFileParts + "");
-            prop.setProperty("videolength", videoLength + "");
+            prop.setProperty("video_length", videoLength + "");
+            prop.setProperty("fileextention",extention);
             propertyFile = new File(chunkFileDir.getAbsoluteFile(), chunkFileDir.getName() + ".cfg");
             FileOutputStream fos = null;
             try {
@@ -59,9 +62,9 @@ public class FilePropertyAsync extends AsyncTask<Void,Void,Void> {
                 e.printStackTrace();
             }
         }
-        if(propertyFile!=null&&propertyFile.exists()) {
-            encrypted= CipherEncryption.Encrypt(propertyFile.getAbsolutePath());
-        }
+//        if(propertyFile!=null&&propertyFile.exists()) {
+//            encrypted= CipherEncryption.Encrypt(propertyFile.getAbsolutePath());
+//        }
         return null;
     }
 
@@ -70,7 +73,7 @@ public class FilePropertyAsync extends AsyncTask<Void,Void,Void> {
         super.onPostExecute(aVoid);
         Log.d("Overrr","Wrotted");
 
-            encryptionCallback.propertyResult(encrypted);
+            encryptionCallback.propertyResult(true);
 
     }
 }

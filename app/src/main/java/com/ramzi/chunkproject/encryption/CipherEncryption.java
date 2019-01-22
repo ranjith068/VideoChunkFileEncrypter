@@ -29,7 +29,7 @@ public class CipherEncryption {
         Cipher mCipher = null;
         try {
             mCipher = Cipher.getInstance(CipherCommon.AES_TRANSFORMATION);
-            mCipher.init(Cipher.DECRYPT_MODE, mSecretKeySpec, mIvParameterSpec);
+            mCipher.init(Cipher.ENCRYPT_MODE, mSecretKeySpec, mIvParameterSpec);
         } catch (Exception e) {
             e.printStackTrace();
         }

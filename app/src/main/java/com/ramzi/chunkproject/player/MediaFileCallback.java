@@ -9,5 +9,7 @@ import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
  */
 public interface MediaFileCallback {
 
-    public void onMediaFileRecieve(ConcatenatingMediaSource mediaSource);
+     void onMediaFileRecieve(ConcatenatingMediaSource mediaSource,String filename,long totalTIme);
+     void onMediaFileRecieve(boolean status);
+
 }
