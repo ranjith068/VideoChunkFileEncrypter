@@ -23,20 +23,12 @@ public class CipherEncryption {
     public static boolean Encrypt(String fileName)
     {
 
-        final byte[] iv = {65, 1, 2, 23, 4, 5, 6, 7, 32, 21, 10, 11, 12, 13, 84, 45};
-        final byte[] salt = {65, 1, 2, 23, 4, 5, 6, 7, 32, 21, 10, 11, 12, 13, 84, 45};
-
-//      byte[] iv = generateSecureBytes(IV_LENGTH);
-//      final byte[] key = { 0, 42, 2, 54, 4, 45, 6, 7, 65, 9, 54, 11, 12, 13, 60, 15, 65, 9, 54, 11, 12, 13, 60, 15 };
-//    secureRandom.nextBytes(key);
-//    secureRandom.nextBytes(iv);kolmklja
-//    byte[] salt = generateSecureBytes(SALT_LENGTH);
-        byte[] key = PBKDF2("kolmklja".toCharArray(), salt);
-        SecretKeySpec mSecretKeySpec = new SecretKeySpec(key, AES_ALGORITHM);
-        IvParameterSpec mIvParameterSpec = new IvParameterSpec(iv);
+        byte[] key = CipherCommon.PBKDF2("kolmklja".toCharArray(), CipherCommon.salt);
+        SecretKeySpec mSecretKeySpec = new SecretKeySpec(key, CipherCommon.AES_ALGORITHM);
+        IvParameterSpec mIvParameterSpec = new IvParameterSpec(CipherCommon.iv);
         Cipher mCipher = null;
         try {
-            mCipher = Cipher.getInstance(AES_TRANSFORMATION);
+            mCipher = Cipher.getInstance(CipherCommon.AES_TRANSFORMATION);
             mCipher.init(Cipher.DECRYPT_MODE, mSecretKeySpec, mIvParameterSpec);
         } catch (Exception e) {
             e.printStackTrace();
@@ -78,28 +70,6 @@ public class CipherEncryption {
     }
 
 
-    private static byte[] PBKDF2(char[] password, byte[] salt) {
-        try {
-//            [C@17ec0b5
-            Log.d("kko",password.length+"");
-//        Use PBKDF2WithHmacSHA512 for java 8
-//    SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
-            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-            PBEKeySpec spec = new PBEKeySpec(password, salt, PBKDF2_ITERATIONS, KEY_LENGTH);
-            SecretKey secretKey = secretKeyFactory.generateSecret(spec);
 
-            return secretKey.getEncoded();
-        }
-        catch(Exception error)
-        {
-            System.out.println("Error: " + error.getMessage());
-            return null;
-        }
-    }
-
-    private static int PBKDF2_ITERATIONS = 50000;
-    private static int KEY_LENGTH = 256;
-    public static final String AES_ALGORITHM = "AES";
-    public static final String AES_TRANSFORMATION = "AES/CTR/NoPadding";
 
 }
