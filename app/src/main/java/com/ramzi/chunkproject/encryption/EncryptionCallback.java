@@ -8,4 +8,6 @@ package com.ramzi.chunkproject.encryption;
 public interface EncryptionCallback {
 
     public void encryptionResult(boolean status,int part,long nextChunkFileStartTime);
+    public void propertyResult(boolean status);
+
 }

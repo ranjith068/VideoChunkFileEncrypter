@@ -11,6 +11,7 @@ import com.ramzi.chunkproject.R;
 import com.ramzi.chunkproject.conversion.interfaces.ConversionCallback;
 import com.ramzi.chunkproject.encryption.EncryptionAsync;
 import com.ramzi.chunkproject.encryption.EncryptionCallback;
+import com.ramzi.chunkproject.file.FilePropertyAsync;
 import com.ramzi.chunkproject.utils.HelperUtils;
 
 import java.io.File;
@@ -32,13 +33,15 @@ public class FFmpegConversion implements EncryptionCallback {
     String input;
     int totalPart;
     String destinationDirectory;
+    long videoLength;
 
 
-    public FFmpegConversion(ConversionCallback conversionCallback, Context context, String input, long videoSize, String destinationDirectory) {
+    public FFmpegConversion(ConversionCallback conversionCallback, Context context, String input, long videoLength, String destinationDirectory) {
         this.conversionCallback = conversionCallback;
         this.context = context;
         this.input = input;
-        totalPart = (int) Math.round(videoSize / HelperUtils.SECOUND_TO_SPLIT);
+        this.videoLength=videoLength;
+        totalPart = (int) Math.round(videoLength / HelperUtils.SECOUND_TO_SPLIT);
         this.destinationDirectory = destinationDirectory;
 
 
@@ -197,12 +200,28 @@ public class FFmpegConversion implements EncryptionCallback {
             }
             else
             {
-                conversionCallback.conversionStatus("All chunk files has been encrypted");
+                conversionCallback.conversionStatus("All chunk files has been encrypted writing file property Please wait....");
+                new FilePropertyAsync(destinationDirectory,totalPart,videoLength,FFmpegConversion.this).execute();
 
             }
         } else {
             conversionCallback.conversionStatus("Encryption Failed.....:(");
 
         }
+    }
+
+    @Override
+    public void propertyResult(boolean status) {
+        if(status)
+        {
+            conversionCallback.conversionStatus("ALL Process Completed");
+
+        }
+        else
+        {
+            conversionCallback.conversionStatus("ALL Process Completed with property file failed");
+
+        }
+
     }
 }

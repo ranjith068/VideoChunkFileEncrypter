@@ -3,6 +3,8 @@ package com.ramzi.chunkproject.encryption;
 import android.os.AsyncTask;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.util.Properties;
 
 /**
  * Created by voltella on 22/1/19.
@@ -32,6 +34,8 @@ public class EncryptionAsync extends AsyncTask<Void,Void,Void> {
         if(chunkFile.exists())
         {
             encryptionStatus=CipherEncryption.Encrypt(filePath);
+
+
         }
         return null;
     }
