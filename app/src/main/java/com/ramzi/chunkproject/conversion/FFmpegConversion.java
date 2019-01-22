@@ -9,17 +9,20 @@ import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunnin
 import com.ramzi.chunkproject.ChunkMainActivity;
 import com.ramzi.chunkproject.R;
 import com.ramzi.chunkproject.conversion.interfaces.ConversionCallback;
+import com.ramzi.chunkproject.encryption.EncryptionAsync;
+import com.ramzi.chunkproject.encryption.EncryptionCallback;
 import com.ramzi.chunkproject.utils.HelperUtils;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by oliveboard on 21/1/19.
+ * Created by voltella on 21/1/19.
  *
  * @auther Ramesh M Nair
  */
-public class FFmpegConversion {
+public class FFmpegConversion implements EncryptionCallback {
     public ConversionCallback conversionCallback;
 
     public static final String TAG = "FFmpegConversion";
@@ -31,22 +34,20 @@ public class FFmpegConversion {
     String destinationDirectory;
 
 
-    public FFmpegConversion(ConversionCallback conversionCallback, Context context,String input,long videoSize,String destinationDirectory)
-    {
-        this.conversionCallback=conversionCallback;
-        this.context=context;
-        this.input=input;
-        totalPart = (int) Math.round(videoSize/HelperUtils.SECOUND_TO_SPLIT);
-        this.destinationDirectory=destinationDirectory;
+    public FFmpegConversion(ConversionCallback conversionCallback, Context context, String input, long videoSize, String destinationDirectory) {
+        this.conversionCallback = conversionCallback;
+        this.context = context;
+        this.input = input;
+        totalPart = (int) Math.round(videoSize / HelperUtils.SECOUND_TO_SPLIT);
+        this.destinationDirectory = destinationDirectory;
 
 
-        Log.d(TAG,"Constuctor input :"+input+"\n"+"totalPart:"+totalPart+"\n destinationDirectory:"+destinationDirectory);
+        Log.d(TAG, "Constuctor input :" + input + "\n" + "totalPart:" + totalPart + "\n destinationDirectory:" + destinationDirectory);
 
     }
 
 
-    public void spliteTimeAndStart(int part,long startTime)
-    {
+    public void spliteTimeAndStart(int part, long startTime) {
 
 
         commandList.clear();
@@ -71,13 +72,15 @@ public class FFmpegConversion {
         commandList.add("-1");
         commandList.add("-c:v");
         commandList.add("libx264");
+        commandList.add("-preset");
+        commandList.add("ultrafast");
         commandList.add("-c:a");
         commandList.add("copy");
 //        commandList.add("-crf");
 //        commandList.add("300");//18
         commandList.add("-t");
         commandList.add(HelperUtils.SECOUND_TO_SPLIT_TIMESTAMP);
-        commandList.add(destinationDirectory+"/"+part+HelperUtils.getFileExtention(input));
+        commandList.add(destinationDirectory + "/" + part + HelperUtils.getFileExtention(input));
 
         //ffmpeg -i input.mp4 -vcodec copy -acodec copy -copyinkf -ss 00:36:18 -to 00:39:50 output.mp4
 
@@ -107,11 +110,11 @@ public class FFmpegConversion {
 //        commandList.add("0");
 //        commandList.add(destinationDirectory+"/"+part+HelperUtils.getFileExtention(input));
 
-        String[] command  = commandList.toArray(new String[commandList.size()]);
+        String[] command = commandList.toArray(new String[commandList.size()]);
         if (command.length != 0) {
             Log.d(TAG, "commentzzz " + command.toString());
 
-            execFFmpegBinary(command,part,totalPart,startTime);
+            execFFmpegBinary(command, part, totalPart, startTime, destinationDirectory + "/" + part + HelperUtils.getFileExtention(input));
         } else {
 //            Toast.makeText(ChunkMainActivity.this, getString(R.string.empty_command_toast), Toast.LENGTH_LONG).show();
         }
@@ -119,25 +122,22 @@ public class FFmpegConversion {
     }
 
 
-
-    private void execFFmpegBinary(final String[] command, final int part, final int totalPart, final long lastStartTime) {
+    private void execFFmpegBinary(final String[] command, final int part, final int totalPart, final long lastStartTime, final String fileoutPut) {
         try {
             FFmpeg.getInstance(context).execute(command, new ExecuteBinaryResponseHandler() {
                 @Override
                 public void onFailure(String s) {
 
-                    if(conversionCallback!=null)
-                    {
-                        conversionCallback.conversionStatus(part+"/"+totalPart+" "+"FAILED with output : " + s);
+                    if (conversionCallback != null) {
+                        conversionCallback.conversionStatus(part + "/" + totalPart + " " + "FAILED with output : " + s);
                     }
                 }
 
                 @Override
                 public void onSuccess(String s) {
 
-                    if(conversionCallback!=null)
-                    {
-                        conversionCallback.conversionStatus(part+"/"+totalPart+" "+"SUCCESS with output : " + s);
+                    if (conversionCallback != null) {
+                        conversionCallback.conversionStatus(part + "/" + totalPart + " " + "SUCCESS with output : " + s);
                     }
 
                 }
@@ -147,9 +147,8 @@ public class FFmpegConversion {
                     Log.d(TAG, "Started command : ffmpeg " + s);
 //                    addTextViewToLayout("progress : "+s);
 //                    statusTextView.setText("Processing\n" + s);
-                    if(conversionCallback!=null)
-                    {
-                        conversionCallback.conversionStatus(part+"/"+totalPart+" "+"Processing\n" + s);
+                    if (conversionCallback != null) {
+                        conversionCallback.conversionStatus(part + "/" + totalPart + " " + "Processing\n" + s);
                     }
                 }
 
@@ -158,9 +157,8 @@ public class FFmpegConversion {
 //                    outputLayout.removeAllViews();
 
                     Log.d(TAG, "Started command : ffmpeg " + command);
-                    if(conversionCallback!=null)
-                    {
-                        conversionCallback.conversionStatus(part+"/"+totalPart+" "+"Processing...");
+                    if (conversionCallback != null) {
+                        conversionCallback.conversionStatus(part + "/" + totalPart + " " + "Processing...");
                     }
 //                    progressDialog.show();
                 }
@@ -169,23 +167,42 @@ public class FFmpegConversion {
                 public void onFinish() {
                     Log.d(TAG, "Finished command : ffmpeg " + command);
 //                    progressDialog.dismiss();
-                    if(conversionCallback!=null)
-                    {
+                    if (conversionCallback != null) {
 //                        conversionCallback.conversionStatus("Completed,Going for encryption");
-                        if(part<totalPart) {
-                            spliteTimeAndStart((part + 1),(lastStartTime+HelperUtils.SECOUND_TO_SPLIT));
-                        }
-                        else
-                        {
-                            conversionCallback.conversionStatus("Completed,Going for encryption");
 
-                        }
+                        conversionCallback.conversionStatus("Completed,Going for encryption Please wait...");
+
+                        new EncryptionAsync(fileoutPut, part, (lastStartTime + HelperUtils.SECOUND_TO_SPLIT), FFmpegConversion.this).execute();
+
                     }
 
                 }
             });
         } catch (FFmpegCommandAlreadyRunningException e) {
             // do nothing for now
+        }
+    }
+
+    @Override
+    public void encryptionResult(boolean status, int part, long nextChunkFileStartTime) {
+        if (status) {
+            if(new File(destinationDirectory + "/" + part + HelperUtils.getFileExtention(input)).exists())
+            {
+                new File(destinationDirectory + "/" + part + HelperUtils.getFileExtention(input)).delete();
+            }
+            if(part<totalPart) {
+
+                spliteTimeAndStart((part + 1), nextChunkFileStartTime);
+
+            }
+            else
+            {
+                conversionCallback.conversionStatus("All chunk files has been encrypted");
+
+            }
+        } else {
+            conversionCallback.conversionStatus("Encryption Failed.....:(");
+
         }
     }
 }
