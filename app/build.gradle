@@ -60,5 +60,9 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife:5.1.2'
     compile 'com.jakewharton:butterknife:5.1.2'
     androidTestCompile 'com.squareup.assertj:assertj-android:1.0.0'
+
+
     implementation project(':FFmpegAndroid')
+    implementation 'com.obsez.android.lib.filechooser:filechooser:1.1.11'
+
 }
