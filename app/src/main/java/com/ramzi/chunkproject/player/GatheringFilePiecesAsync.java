@@ -58,7 +58,7 @@ public class GatheringFilePiecesAsync extends AsyncTask<Void,Void,Void> {
             String fileExtention=prop.getProperty("fileextention");
             MediaSource[] mediaSourcesToLoad = new MediaSource[filecount];
             for (int i = 0; i < filecount; i++) {
-                Uri uri = Uri.fromFile(new File(chunkFileDir.getAbsoluteFile(), i+"."+fileExtention + ".enc"));
+                Uri uri = Uri.fromFile(new File(chunkFileDir.getAbsoluteFile(), i+fileExtention + ".enc"));
                 mediaSourcesToLoad[i]=new ExtractorMediaSource.Factory(dataSourceFactory).setExtractorsFactory(extractorsFactory)
                         .createMediaSource(uri);
 
