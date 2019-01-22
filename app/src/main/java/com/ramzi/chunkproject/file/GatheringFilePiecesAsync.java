@@ -1,4 +1,4 @@
-package com.ramzi.chunkproject.player;
+package com.ramzi.chunkproject.file;
 
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -7,6 +7,7 @@ import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.ramzi.chunkproject.player.MediaFileCallback;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -57,7 +58,7 @@ public class GatheringFilePiecesAsync extends AsyncTask<Void,Void,Void> {
              videoLength=Long.parseLong(prop.getProperty("video_length"));
             String fileExtention=prop.getProperty("fileextention");
             MediaSource[] mediaSourcesToLoad = new MediaSource[filecount];
-            for (int i = 0; i < filecount; i++) {
+            for (int i = 0; i <= filecount; i++) {
                 Uri uri = Uri.fromFile(new File(chunkFileDir.getAbsoluteFile(), i+fileExtention + ".enc"));
                 mediaSourcesToLoad[i]=new ExtractorMediaSource.Factory(dataSourceFactory).setExtractorsFactory(extractorsFactory)
                         .createMediaSource(uri);

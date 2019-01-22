@@ -26,6 +26,10 @@ public class HelperUtils {
 
     public static String getFileExtention(String filePath)
     {
+        if(filePath.substring(filePath.lastIndexOf(".")).contains("avi"))
+        {
+            return ".mp4";
+        }
         return filePath.substring(filePath.lastIndexOf("."));
     }
 

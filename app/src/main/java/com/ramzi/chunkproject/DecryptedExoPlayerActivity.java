@@ -1,13 +1,9 @@
 package com.ramzi.chunkproject;
 
 import android.app.Dialog;
-import android.net.Uri;
-import android.os.Environment;
-import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -20,8 +16,6 @@ import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
-import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
@@ -30,7 +24,7 @@ import com.google.android.exoplayer2.ui.PlaybackControlView;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.*;
 import com.ramzi.chunkproject.encryption.CipherCommon;
-import com.ramzi.chunkproject.player.GatheringFilePiecesAsync;
+import com.ramzi.chunkproject.file.GatheringFilePiecesAsync;
 import com.ramzi.chunkproject.player.MediaFileCallback;
 import com.ramzi.chunkproject.player.encryptionsource.EncryptedFileDataSourceFactory;
 
