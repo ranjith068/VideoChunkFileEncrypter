@@ -1,12 +1,14 @@
 package com.ramzi.chunkproject;
 
 import android.app.Dialog;
+import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
@@ -14,6 +16,7 @@ import android.widget.SeekBar;
 import android.widget.Toast;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
@@ -28,17 +31,22 @@ import com.google.android.exoplayer2.upstream.*;
 import com.ramzi.chunkproject.encryption.CipherCommon;
 import com.ramzi.chunkproject.file.GatheringFilePiecesAsync;
 import com.ramzi.chunkproject.player.MediaFileCallback;
+//import com.ramzi.chunkproject.player.PlayerEventListener;
 import com.ramzi.chunkproject.player.encryptionsource.EncryptedFileDataSourceFactory;
+import com.ramzi.chunkproject.utils.HelperUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import static com.ramzi.chunkproject.utils.HelperUtils.SECOUND_TO_SPLIT;
 
 
-public class DecryptedExoPlayerActivity extends AppCompatActivity implements MediaFileCallback {
+public class DecryptedExoPlayerActivity extends AppCompatActivity implements Player.EventListener, MediaFileCallback {
 
     private final String STATE_RESUME_WINDOW = "resumeWindow";
     private final String STATE_RESUME_POSITION = "resumePosition";
@@ -60,6 +68,10 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
     private IvParameterSpec mIvParameterSpec;
     SimpleExoPlayer player;
 
+    Handler mainHandler = new Handler();
+    private Timer timer;
+    int seekposition=0;
+
     //    private static final String ENCRYPTED_FILE_NAME = "0.mp4.enc";
 //    private static final String ENCRYPTED_FILE_NAME2 = "1.mp4.enc";
 //    private static final String ENCRYPTED_FILE_NAME3 = "2.mp4.enc";
@@ -72,11 +84,14 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
 
     long totalLength;
     int lastindex;
+    boolean isPlayer=false;
+    boolean isSeeking=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.exoplayer_activity);
         seekBar = (SeekBar) findViewById(R.id.seek);
 
@@ -107,6 +122,8 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
 //                    updateTime((long) (progress / 100.0f * player.getDuration()));
+                    isSeeking=true;
+                    seekposition=progress;
                     seekToPart(progress);
 
                 }
@@ -114,13 +131,19 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
+                isSeeking=true;
 //                timer.cancel();
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+//                seekToPart((int) (player.getDuration() / 100.0f * seekBar.getProgress()));
 //                player.seekTo((int) (player.getDuration() / 100.0f * seekBar.getProgress()));
+                seekposition=seekBar.getProgress();
+                seekToPart(seekBar.getProgress());
+                isSeeking=false;
             }
+
         });
 
     }
@@ -201,6 +224,8 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
         if (haveResumePosition) {
             player.seekTo(mResumeWindow, mResumePosition);
         }
+
+        mExoPlayerView.getPlayer().addListener(this);
 
     /*    player.prepare(mediaSourcess);
         player.setPlayWhenReady(true);
@@ -330,11 +355,15 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
         if ((index + 1) == lastindex) {
 
             currentIndexSeekValue = currentSeekingTime - (SECOUND_TO_SPLIT * index);
-        } else {
+        } else if(index==0)
+        {
+            currentIndexSeekValue = currentSeekingTime;
+        }
+        else{
             currentIndexSeekValue = (SECOUND_TO_SPLIT * (index + 1)) - currentSeekingTime;
         }
 
-        Log.d("Value>>>>", " datatata \nTotalTime :" + totalLength + "\n Current Time : "
+        Log.d("Value>>>>", currentProgress+" datatata \nTotalTime :" + totalLength + "\n Current Time : "
                 + currentSeekingTime + "\n index:" + index + "-----" + "indexseek " + currentIndexSeekValue);
         player.seekTo(index, currentIndexSeekValue);
 
@@ -348,6 +377,103 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
             player.setPlayWhenReady(false);
             player.stop();
 //            exoPlayer.seekTo(0);
+        }
+
+        if (mHandler != null) {
+            mHandler.removeCallbacks(updateProgressAction);
+        }
+    }
+
+    void updateSeekBar() {
+        if(seekBar!=null) {
+            Log.d(">>>","change>>>"+(int) (player.getCurrentPosition() * 1.0f / totalLength * 100));
+            seekBar.setProgress((int) (player.getCurrentPosition() * 1.0f / totalLength * 100));
+            seekBar.setSecondaryProgress(player.getBufferedPercentage());
+        }
+    }
+
+    @Override
+    public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+
+        isPlayer=playWhenReady;
+        if (playWhenReady && playbackState == Player.STATE_READY) {
+
+//            Log.v("trackcheckstate", " check" + playbackState + "  Ready " + playWhenReady + "  duration " + getDuration());
+
+
+//            timer = new Timer(true);
+//            timer.schedule(new TimerTask() {
+//                @Override
+//                public void run() {
+//                    updateSeekBar();
+//                }
+//            }, 0, 1000);
+            mHandler = new Handler();
+            mHandler.post(updateProgressAction);
+
+
+
+        }
+
+        if (playbackState == Player.STATE_ENDED) {
+
+
+            player.setPlayWhenReady(false);
+            player.seekTo(0);
+            if (mHandler != null) {
+
+                mHandler.removeCallbacks(updateProgressAction);
+            }
+        }
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (player != null) {
+            player.release();
+        }
+        if (timer != null) {
+            timer.cancel();
+        }
+    }
+    private Handler mHandler;
+
+
+    private final Runnable updateProgressAction = new Runnable() {
+        @Override
+        public void run() {
+            updateProgress();
+        }
+    };
+
+    public void updateProgress()
+    {
+        if(isPlayer) {
+            long delayMs = TimeUnit.SECONDS.toMillis(1);
+            mHandler.postDelayed(updateProgressAction, delayMs);
+            if(!isSeeking)
+            {
+//                sekkbar.setProgress((int) (player.getCurrentPosition() * 1.0f / player.getDuration() * 100));
+                if(player.getCurrentWindowIndex()==0) {
+                    Log.d("PAPAPAPA", (int) (player.getCurrentPosition() * 1.0f / totalLength * 100) + ">>>");
+                    seekBar.setProgress((int) (player.getCurrentPosition() * 1.0f / totalLength * 100));
+                }
+                else
+                {
+                    long currentposition=player.getCurrentPosition()+(HelperUtils.SECOUND_TO_SPLIT *player.getCurrentWindowIndex());
+                    Log.d("PAPAPAPA", (int) (currentposition * 1.0f /totalLength * 100) + ">>>");
+                    seekBar.setProgress((int) (currentposition * 1.0f /totalLength * 100));
+
+                }
+//                int newIndex=player.getCurrentWindowIndex()+1;
+//                Log.d("CurrentSeek",player.getCurrentPosition()+"<<<>>>"+(int) ((player.getCurrentPosition()*newIndex) * 1.0f / totalLength * 100)+">>>");
+            }
+
+//                seekBar.setProgress((int) (player.getCurrentPosition()*player.getCurrentWindowIndex() * 1.0f / totalLength * 100));
+//                seekBar.setSecondaryProgress(player.getBufferedPercentage());            }
         }
     }
 }
