@@ -50,6 +50,81 @@ public class FFmpegConversion implements EncryptionCallback {
     }
 
 
+    public void splitimages()
+    {
+//        ffmpeg -i video.webm -vf fps=1 thumb%04d.jpg -hide_banner
+//        ffmpeg -i video.webm -vf fps=1/5 thumb%04d.jpg -hide_banner
+        commandList.clear();
+        commandList.add("-i");
+        commandList.add(input);
+        commandList.add("-vf");
+        commandList.add("fps=1");
+        commandList.add(destinationDirectory + "/thumb%04d.jpg");
+        commandList.add("-hide_banner");
+
+        String[] command = commandList.toArray(new String[commandList.size()]);
+
+
+        try {
+            FFmpeg.getInstance(context).execute(command, new ExecuteBinaryResponseHandler() {
+                @Override
+                public void onFailure(String s) {
+
+                    if (conversionCallback != null) {
+                        conversionCallback.conversionStatus("FAILED with output : " + s);
+                    }
+                }
+
+                @Override
+                public void onSuccess(String s) {
+
+                    if (conversionCallback != null) {
+                        conversionCallback.conversionStatus("SUCCESS with output : " + s);
+                    }
+
+                }
+
+                @Override
+                public void onProgress(String s) {
+                    Log.d(TAG, "Started command : ffmpeg " + s);
+//                    addTextViewToLayout("progress : "+s);
+//                    statusTextView.setText("Processing\n" + s);
+                    if (conversionCallback != null) {
+                        conversionCallback.conversionStatus("Processing\n" + s);
+                    }
+                }
+
+                @Override
+                public void onStart() {
+//                    outputLayout.removeAllViews();
+
+                    Log.d(TAG, "Started command : ffmpeg " + command);
+                    if (conversionCallback != null) {
+                        conversionCallback.conversionStatus("Processing...");
+                    }
+//                    progressDialog.show();
+                }
+
+                @Override
+                public void onFinish() {
+                    Log.d(TAG, "Finished command : ffmpeg " + command);
+//                    progressDialog.dismiss();
+                    if (conversionCallback != null) {
+//                        conversionCallback.conversionStatus("Completed,Going for encryption");
+
+                        conversionCallback.conversionStatus("Completed,frame extraction");
+
+
+                    }
+
+                }
+            });
+        } catch (FFmpegCommandAlreadyRunningException e) {
+            // do nothing for now
+        }
+    }
+
+
     public void spliteTimeAndStart(int part, long startTime) {
 
 

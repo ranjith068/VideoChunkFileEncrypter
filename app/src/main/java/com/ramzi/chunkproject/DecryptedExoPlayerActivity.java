@@ -340,4 +340,14 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
 
 
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (player != null) {
+            player.setPlayWhenReady(false);
+            player.stop();
+//            exoPlayer.seekTo(0);
+        }
+    }
 }

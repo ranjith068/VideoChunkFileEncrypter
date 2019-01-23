@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="0.5"
-            android:background="@color/colorPrimary"
+            android:background="#000"
             android:gravity="center"
 
     >
@@ -33,7 +33,7 @@
                 android:id="@+id/seek"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:progressBackgroundTint="@color/grey"
+                android:progressBackgroundTint="@color/white"
                 android:theme="@style/AppTheme.SeekBar" />
     </RelativeLayout>
 

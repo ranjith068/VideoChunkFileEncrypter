@@ -46,7 +46,7 @@ import java.util.Map;
  * @auther Ramesh M Nair
  */
 public class ChunkMainActivity extends AppCompatActivity implements ConversionCallback {
-    TextView selectedVideotextView, statusTextView,selectedChunkFileTextView;
+    TextView selectedVideotextView, statusTextView, selectedChunkFileTextView;
     public static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1001;
     public static final String TAG = "ChunkCreator";
     String outputDirectory = Environment.getExternalStorageDirectory().toString() + "/";
@@ -58,7 +58,7 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
         setContentView(R.layout.activity_main);
         selectedVideotextView = (TextView) findViewById(R.id.selected_file_tv);
         statusTextView = (TextView) findViewById(R.id.chunk_status_tv);
-        selectedChunkFileTextView=(TextView)findViewById(R.id.selected_chunk_tv);
+        selectedChunkFileTextView = (TextView) findViewById(R.id.selected_chunk_tv);
         loadFFMpegBinary();
         checkPermisson(ChunkMainActivity.this);
     }
@@ -103,13 +103,7 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
 
 
     public void startChunkConversion(View v) {
-        String urlPath;
-        try {
-            urlPath = URLEncoder.encode(selectedVideotextView.getText().toString(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            urlPath = selectedVideotextView.getText().toString();
-        }
+
         final File videoFile = new File(selectedVideotextView.getText().toString());
         if (videoFile.exists()) {
             long timeInMillisec = 0;
@@ -132,17 +126,14 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
                 @Override
                 public void onMetadataRetrieved(Map<String, String> map) {
 
-                        long ffmpegTimeDuration=HelperUtils.getTheDurationInMillsecound(map.get("Duration"));
-                        if(ffmpegTimeDuration!=-1)
-                        {
-                            new FFmpegConversion(ChunkMainActivity.this, getApplicationContext(), videoFile.getAbsolutePath(), ffmpegTimeDuration, HelperUtils.finalDestination(videoFile.getName() + ".partfile")).spliteTimeAndStart(0, 0);
+                    long ffmpegTimeDuration = HelperUtils.getTheDurationInMillsecound(map.get("Duration"));
+                    if (ffmpegTimeDuration != -1) {
+                        new FFmpegConversion(ChunkMainActivity.this, getApplicationContext(), videoFile.getAbsolutePath(), ffmpegTimeDuration, HelperUtils.finalDestination(videoFile.getName() + ".partfile")).spliteTimeAndStart(0, 0);
 
-                        }
-                        else
-                        {
-                            new FFmpegConversion(ChunkMainActivity.this, getApplicationContext(), videoFile.getAbsolutePath(), finalTimeInMillisec, HelperUtils.finalDestination(videoFile.getName() + ".partfile")).spliteTimeAndStart(0, 0);
+                    } else {
+                        new FFmpegConversion(ChunkMainActivity.this, getApplicationContext(), videoFile.getAbsolutePath(), finalTimeInMillisec, HelperUtils.finalDestination(videoFile.getName() + ".partfile")).spliteTimeAndStart(0, 0);
 
-                        }
+                    }
 
                 }
             });
@@ -152,33 +143,43 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
     }
 
 
+    public void startChunkFrameConversion(View v) {
+
+        final File videoFile = new File(selectedVideotextView.getText().toString());
+        if (videoFile.exists()) {
+            new FFmpegConversion(ChunkMainActivity.this, getApplicationContext(), videoFile.getAbsolutePath(), 0, HelperUtils.finalDestination(videoFile.getName() + ".partfile")).splitimages();
+
+        }
+
+    }
+
+
     public void selectChunkFile(View v) {
 
-if(new File(Environment.getExternalStorageDirectory() +
-        File.separator + Constants.CHUNKDIR).exists()) {
-    new ChooserDialog().with(this)
-            .withFilter(true, false)
-            .withStartFile(Environment.getExternalStorageDirectory() +
-                    File.separator + Constants.CHUNKDIR)
-            .withChosenListener(new ChooserDialog.Result() {
-                @Override
-                public void onChoosePath(String path, File pathFile) {
-                    selectedChunkFileTextView.setText(path);
+        if (new File(Environment.getExternalStorageDirectory() +
+                File.separator + Constants.CHUNKDIR).exists()) {
+            new ChooserDialog().with(this)
+                    .withFilter(true, false)
+                    .withStartFile(Environment.getExternalStorageDirectory() +
+                            File.separator + Constants.CHUNKDIR)
+                    .withChosenListener(new ChooserDialog.Result() {
+                        @Override
+                        public void onChoosePath(String path, File pathFile) {
+                            selectedChunkFileTextView.setText(path);
 //                            Toast.makeText(MainActivity.this, "FOLDER: " + path, Toast.LENGTH_SHORT).show();
-                }
-            })
-            .build()
-            .show();
-}
+                        }
+                    })
+                    .build()
+                    .show();
+        }
 
     }
 
 
     public void startPlayChunk(View v) {
 
-        if(new File(selectedChunkFileTextView.getText().toString()).exists())
-        {
-            startActivity(new Intent(getApplicationContext(),DecryptedExoPlayerActivity.class).putExtra("file_dir",selectedChunkFileTextView.getText().toString()));
+        if (new File(selectedChunkFileTextView.getText().toString()).exists()) {
+            startActivity(new Intent(getApplicationContext(), DecryptedExoPlayerActivity.class).putExtra("file_dir", selectedChunkFileTextView.getText().toString()));
         }
 
     }
