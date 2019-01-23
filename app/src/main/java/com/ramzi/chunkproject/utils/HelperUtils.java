@@ -89,4 +89,38 @@ public class HelperUtils {
 
 
     }
+
+//    public static long splitTime=60000;
+//    public static int lastindex=34;
+    public void randomCheck(int currentProgress,long totalLength,int lastindex)
+    {
+
+        long currentSeekingTime = (long) (currentProgress / 100.0f * totalLength);
+        int index= (int) Math.floor(currentSeekingTime/SECOUND_TO_SPLIT);
+        long currentseekValue=0;
+        if((index+1)==lastindex)
+        {
+//            double d = totalLength/(double)splitTime;
+//            Log.d("value","ddddd"+d);
+//            BigDecimal bd = new BigDecimal( d - Math.floor( d ));
+//            bd = bd.setScale(10,RoundingMode.HALF_DOWN);
+//            Log.d( "Value>>>>zzzzz",Double.parseDouble(bd.toString())+">>" );
+//            long kkp = (long) Double.parseDouble(bd.toString()) * 1000;
+//            Log.d( "Value in last section", Double.parseDouble(bd.toString()) * 1000+">>" );
+
+//            currentseekValue= (long) ((splitTime*Double.parseDouble(bd.toString())));
+//            currentseekValue=totalLength-;
+//            0.217950
+//            currentseekValue=
+            currentseekValue=currentSeekingTime-(SECOUND_TO_SPLIT * index);
+        }
+        else {
+            currentseekValue = (SECOUND_TO_SPLIT * (index + 1)) - currentSeekingTime;
+        }
+
+        Log.d("Value>>>>"," datatata \nTotalTime :"+totalLength+"\n Current Time : "
+                +currentSeekingTime+"\n index:"+index+"-----"+"indexseek "+currentseekValue);
+
+
+    }
 }

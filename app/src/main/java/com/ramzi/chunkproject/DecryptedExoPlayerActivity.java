@@ -4,11 +4,13 @@ import android.app.Dialog;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import android.widget.SeekBar;
 import android.widget.Toast;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -33,6 +35,8 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 
+import static com.ramzi.chunkproject.utils.HelperUtils.SECOUND_TO_SPLIT;
+
 
 public class DecryptedExoPlayerActivity extends AppCompatActivity implements MediaFileCallback {
 
@@ -56,7 +60,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
     private IvParameterSpec mIvParameterSpec;
     SimpleExoPlayer player;
 
-//    private static final String ENCRYPTED_FILE_NAME = "0.mp4.enc";
+    //    private static final String ENCRYPTED_FILE_NAME = "0.mp4.enc";
 //    private static final String ENCRYPTED_FILE_NAME2 = "1.mp4.enc";
 //    private static final String ENCRYPTED_FILE_NAME3 = "2.mp4.enc";
 //    private static final String ENCRYPTED_FILE_NAME4 = "3.mp4.enc";
@@ -64,12 +68,17 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
 //    private File mEncryptedFile2;
 //    private File mEncryptedFile3;
 //    private File mEncryptedFile4;
+    SeekBar seekBar;
+
+    long totalLength;
+    int lastindex;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.exoplayer_activity);
+        seekBar = (SeekBar) findViewById(R.id.seek);
 
         if (savedInstanceState != null) {
             mResumeWindow = savedInstanceState.getInt(STATE_RESUME_WINDOW);
@@ -91,6 +100,28 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
 //        mEncryptedFile2 = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME2);
 //        mEncryptedFile3 = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME3);
 //        mEncryptedFile4 = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME4);
+
+        seekBar.setMax(100);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+//                    updateTime((long) (progress / 100.0f * player.getDuration()));
+                    seekToPart(progress);
+
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+//                timer.cancel();
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+//                player.seekTo((int) (player.getDuration() / 100.0f * seekBar.getProgress()));
+            }
+        });
 
     }
 
@@ -158,12 +189,11 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
     private void initExoPlayer() {
 
 
-
 //        DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
         TrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory();
 
         TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
-         player=ExoPlayerFactory.newSimpleInstance(this,trackSelector);
+        player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
         mExoPlayerView.setPlayer(player);
 
         boolean haveResumePosition = mResumeWindow != C.INDEX_UNSET;
@@ -234,14 +264,12 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
                 mediaSourcesToLoad[2] = videoSource3;
                 mediaSourcesToLoad[3] = videoSource4;
                  mediaSourcess = new ConcatenatingMediaSource(mediaSourcesToLoad);*/
-               File chunkFileDirectory=new File(getIntent().getExtras().getString("file_dir"));
-               new GatheringFilePiecesAsync(chunkFileDirectory,DecryptedExoPlayerActivity.this,dataSourceFactory,extractorsFactory).execute();
+            File chunkFileDirectory = new File(getIntent().getExtras().getString("file_dir"));
+            new GatheringFilePiecesAsync(chunkFileDirectory, DecryptedExoPlayerActivity.this, dataSourceFactory, extractorsFactory).execute();
 
 
-        }
-        else
-        {
-           initExoPlayer();
+        } else {
+            initExoPlayer();
         }
 
 
@@ -272,14 +300,14 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
     }
 
     @Override
-    public void onMediaFileRecieve(ConcatenatingMediaSource mediaSource, String filename, long totalTIme) {
-        if(mediaSource!=null)
-        {
-            Toast.makeText(getApplicationContext(),"Media player is playing....",Toast.LENGTH_SHORT).show();
+    public void onMediaFileRecieve(ConcatenatingMediaSource mediaSource, String filename, long totalTime,int totalIndex) {
+        if (mediaSource != null) {
+            Toast.makeText(getApplicationContext(), "Media player is playing....", Toast.LENGTH_SHORT).show();
             initExoPlayer();
 
             if (mExoPlayerView != null && player != null) {
-
+                totalLength = totalTime;
+                lastindex=totalIndex;
                 player.prepare(mediaSource);
                 player.setPlayWhenReady(true);
             }
@@ -289,7 +317,27 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Med
 
     @Override
     public void onMediaFileRecieve(boolean status) {
-        Toast.makeText(getApplicationContext(),"Gathering files failed",Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "Gathering files failed", Toast.LENGTH_SHORT).show();
+
+    }
+
+
+    public void seekToPart(int currentProgress) {
+
+        long currentSeekingTime = (long) (currentProgress / 100.0f * totalLength);
+        int index = (int) Math.floor(currentSeekingTime / SECOUND_TO_SPLIT);
+        long currentIndexSeekValue = 0;
+        if ((index + 1) == lastindex) {
+
+            currentIndexSeekValue = currentSeekingTime - (SECOUND_TO_SPLIT * index);
+        } else {
+            currentIndexSeekValue = (SECOUND_TO_SPLIT * (index + 1)) - currentSeekingTime;
+        }
+
+        Log.d("Value>>>>", " datatata \nTotalTime :" + totalLength + "\n Current Time : "
+                + currentSeekingTime + "\n index:" + index + "-----" + "indexseek " + currentIndexSeekValue);
+        player.seekTo(index, currentIndexSeekValue);
+
 
     }
 }

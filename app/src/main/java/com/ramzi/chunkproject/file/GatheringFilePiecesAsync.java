@@ -29,6 +29,7 @@ public class GatheringFilePiecesAsync extends AsyncTask<Void, Void, Void> {
     ExtractorsFactory extractorsFactory;
     String filename;
     long videoLength;
+    int filecount;
 
     public GatheringFilePiecesAsync(File chunkFileDir, MediaFileCallback mediaFileCallback, DataSource.Factory dataSourceFactory, ExtractorsFactory extractorsFactory) {
         this.chunkFileDir = chunkFileDir;
@@ -55,7 +56,7 @@ public class GatheringFilePiecesAsync extends AsyncTask<Void, Void, Void> {
         }
         try {
             filename = prop.getProperty("filename");
-            int filecount = Integer.parseInt(prop.getProperty("part_count"));
+             filecount = Integer.parseInt(prop.getProperty("part_count"));
             videoLength = Long.parseLong(prop.getProperty("video_length"));
             String fileExtention = prop.getProperty("fileextention");
             MediaSource[] mediaSourcesToLoad = new MediaSource[filecount];
@@ -76,7 +77,7 @@ public class GatheringFilePiecesAsync extends AsyncTask<Void, Void, Void> {
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
         if (mediaSource != null) {
-            mediaFileCallback.onMediaFileRecieve(mediaSource, filename, videoLength);
+            mediaFileCallback.onMediaFileRecieve(mediaSource, filename, videoLength,filecount);
         } else {
             mediaFileCallback.onMediaFileRecieve(false);
 

@@ -19,15 +19,22 @@
 
     </FrameLayout>
 
-    <TextView
+    <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="0.5"
-            android:background="#757575"
+            android:background="@color/colorPrimary"
             android:gravity="center"
-            android:text="Nothing"
-            android:visibility="gone"
-            android:textColor="#FFFFFF"
-            android:textSize="24sp" />
+
+    >
+
+
+        <SeekBar
+                android:id="@+id/seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progressBackgroundTint="@color/grey"
+                android:theme="@style/AppTheme.SeekBar" />
+    </RelativeLayout>
 
 </LinearLayout>
