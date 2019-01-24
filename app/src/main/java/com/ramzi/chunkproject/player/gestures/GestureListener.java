@@ -1,6 +1,7 @@
 package com.ramzi.chunkproject.player.gestures;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -27,8 +28,11 @@ abstract public class GestureListener implements View.OnTouchListener,IGestureLi
     private static final int SWIPE_THRESHOLD = 100;
     private static final int SWIPE_VELOCITY_THRESHOLD = 100;
 
+
     @Override
     public boolean onDown(MotionEvent e) {
+
+
       return true;
     }
 
@@ -59,6 +63,12 @@ abstract public class GestureListener implements View.OnTouchListener,IGestureLi
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
       // Fling event occurred.  Notification of this one happens after an "up" event.
+      if(e2.getAction()==MotionEvent.ACTION_DOWN)
+      {
+        float diffY = e2.getY() - e1.getY();
+        Log.d("tendiz","TOUCH DOWN>>>"+diffY);
+
+      }
       boolean result = false;
       try {
         float diffY = e2.getY() - e1.getY();

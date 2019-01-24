@@ -7,10 +7,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.view.*;
 import android.widget.*;
 
 import com.google.android.exoplayer2.C;
@@ -88,8 +85,9 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
     int lastindex;
     boolean isPlayer=false;
     boolean isSeeking=false;
-    TextView timeText;
+    TextView timeText,seekStatus;
     String totalTimeTImestamp;
+    int screenWidth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +98,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
         setContentView(R.layout.exoplayer_activity);
         seekBar = (SeekBar) findViewById(R.id.seek);
         timeText=(TextView)findViewById(R.id.time_text);
+        seekStatus=(TextView)findViewById(R.id.seek_ststus);
         if (savedInstanceState != null) {
             mResumeWindow = savedInstanceState.getInt(STATE_RESUME_WINDOW);
             mResumePosition = savedInstanceState.getLong(STATE_RESUME_POSITION);
@@ -316,7 +315,15 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 
     private void setUpGestureControls() {
         mExoPlayerView.setOnTouchListener(new ExVidPlayerGestureListener(DecryptedExoPlayerActivity.this));
-
+        mExoPlayerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                mExoPlayerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                mExoPlayerView.getHeight(); //height is ready
+                Log.d("widthmovetest",mExoPlayerView.getWidth()+">>>>");
+                screenWidth=mExoPlayerView.getWidth();
+            }
+        });
     }
 
 
@@ -614,8 +621,26 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
         }
 
         @Override public void onHorizontalScroll(MotionEvent event, float delta) {
+//            1920swiping horizontaly1034.3951
+//            1920swiping horizontaly-1671.9392
+            Log.d("tendiz",screenWidth+"swiping horizontaly"+delta+">>>>motion"+event.getAction());
 
-            Log.d("tendiz","swiping horizontaly"+delta);
+//            Log.d("tendiz","Scroll to incrise="+(screenWidth-delta)/31.25);
+//            Log.d("tendiz","Scroll to incrise="+delta*31.25);
+            long perscreen = SECOUND_TO_SPLIT / screenWidth;
+
+            if(delta*perscreen<0)
+            {
+                seekStatus.setText("Last Seeks to Reverse>>> -"+TimeUnit.MILLISECONDS.toSeconds((long) (0-(delta*perscreen))));
+                Log.d("tendiz",delta*perscreen+"Scroll to incrise= Minus"+(SECOUND_TO_SPLIT+(delta*perscreen)));
+
+            }
+            else
+            {
+                Log.d("tendiz",perscreen+"Scroll to incrise= Adding "+delta*perscreen);
+                seekStatus.setText("Last Seeks to Forward>>> +"+TimeUnit.MILLISECONDS.toSeconds((long) (delta*perscreen)));
+
+            }
 
         }
 

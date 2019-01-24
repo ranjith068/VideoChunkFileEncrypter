@@ -39,9 +39,17 @@
         android:layout_below="@+id/seek"
                   android:gravity="center"
                   android:id="@+id/time_text"
-                  android:textColor="#000"
-                        android:text="svasdvasdv"
+                  android:textColor="@color/red"
+                        android:text="time"
         android:layout_marginTop="10dp"></TextView>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                  android:layout_below="@+id/time_text"
+                  android:gravity="center"
+                  android:id="@+id/seek_ststus"
+                  android:textColor="@color/red"
+                  android:text="seek status"
+                  android:layout_marginTop="10dp"></TextView>
     </RelativeLayout>
 
 </RelativeLayout>
