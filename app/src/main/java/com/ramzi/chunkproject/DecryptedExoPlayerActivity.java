@@ -9,11 +9,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
+import android.widget.*;
 
-import android.widget.SeekBar;
-import android.widget.Toast;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
@@ -86,6 +83,8 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
     int lastindex;
     boolean isPlayer=false;
     boolean isSeeking=false;
+    TextView timeText;
+    String totalTimeTImestamp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +93,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.exoplayer_activity);
         seekBar = (SeekBar) findViewById(R.id.seek);
-
+        timeText=(TextView)findViewById(R.id.time_text);
         if (savedInstanceState != null) {
             mResumeWindow = savedInstanceState.getInt(STATE_RESUME_WINDOW);
             mResumePosition = savedInstanceState.getLong(STATE_RESUME_POSITION);
@@ -124,7 +123,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 //                    updateTime((long) (progress / 100.0f * player.getDuration()));
                     isSeeking=true;
                     seekposition=progress;
-                    seekToPart(progress);
+                    seekToPart(progress,true);
 
                 }
             }
@@ -140,7 +139,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 //                seekToPart((int) (player.getDuration() / 100.0f * seekBar.getProgress()));
 //                player.seekTo((int) (player.getDuration() / 100.0f * seekBar.getProgress()));
                 seekposition=seekBar.getProgress();
-                seekToPart(seekBar.getProgress());
+//                seekToPart(seekBar.getProgress());
                 isSeeking=false;
             }
 
@@ -332,6 +331,26 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 
             if (mExoPlayerView != null && player != null) {
                 totalLength = totalTime;
+                long sec = (totalLength/1000) % 60;
+                long min = ((totalLength/1000) / 60) % 60;
+                long hour = ((totalLength/1000) / 60) / 60;
+                String secd=""+(totalLength/1000) % 60;
+                String mind=""+((totalLength/1000) / 60) % 60;
+                String hourd=""+((totalLength/1000) / 60) / 60;
+                if(sec<10)
+                {
+                    secd="0"+secd;
+                }
+                if(min<10)
+                {
+                    mind="0"+mind;
+                }
+                if(hour<10)
+                {
+                    hourd="0"+hourd;
+                }
+                totalTimeTImestamp=hourd+":"+mind+":"+secd;
+//                changeTimeTextView(totalLength);
                 lastindex=totalIndex;
                 player.prepare(mediaSource);
                 player.setPlayWhenReady(true);
@@ -347,12 +366,13 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
     }
 
 
-    public void seekToPart(int currentProgress) {
+    public void seekToPart(int currentProgress,boolean shouldSeek) {
 
         long currentSeekingTime = (long) (currentProgress / 100.0f * totalLength);
+        changeTimeTextView(currentSeekingTime);
         int index = (int) Math.floor(currentSeekingTime / SECOUND_TO_SPLIT);
         long currentIndexSeekValue = 0;
-        if ((index + 1) == lastindex) {
+       /* if ((index + 1) == lastindex) {
 
             currentIndexSeekValue = currentSeekingTime - (SECOUND_TO_SPLIT * index);
         } else if(index==0)
@@ -360,12 +380,27 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
             currentIndexSeekValue = currentSeekingTime;
         }
         else{
-            currentIndexSeekValue = (SECOUND_TO_SPLIT * (index + 1)) - currentSeekingTime;
+//            currentIndexSeekValue = (SECOUND_TO_SPLIT * (index + 1)) - currentSeekingTime;
+            currentIndexSeekValue = currentSeekingTime - (SECOUND_TO_SPLIT * index);
+
+        }*/
+        if(index==0)
+        {
+            currentIndexSeekValue = currentSeekingTime;
+        }
+        else{
+//            currentIndexSeekValue = (SECOUND_TO_SPLIT * (index + 1)) - currentSeekingTime;
+            currentIndexSeekValue = currentSeekingTime - (SECOUND_TO_SPLIT * index);
+
         }
 
         Log.d("Value>>>>", currentProgress+" datatata \nTotalTime :" + totalLength + "\n Current Time : "
                 + currentSeekingTime + "\n index:" + index + "-----" + "indexseek " + currentIndexSeekValue);
-        player.seekTo(index, currentIndexSeekValue);
+        if(shouldSeek) {
+            player.seekTo(index, currentIndexSeekValue);
+        }
+
+
 
 
     }
@@ -445,6 +480,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
     private final Runnable updateProgressAction = new Runnable() {
         @Override
         public void run() {
+            Log.d("getcurrent","lalu out>>"+player.getCurrentPosition());
             updateProgress();
         }
     };
@@ -452,8 +488,12 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
     public void updateProgress()
     {
         if(isPlayer) {
+            Log.d("getcurrent","lalu innnn>>"+player.getCurrentPosition());
+
             long delayMs = TimeUnit.SECONDS.toMillis(1);
             mHandler.postDelayed(updateProgressAction, delayMs);
+            seekToPart(seekBar.getProgress(),false);
+
             if(!isSeeking)
             {
 //                sekkbar.setProgress((int) (player.getCurrentPosition() * 1.0f / player.getDuration() * 100));
@@ -468,6 +508,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
                     seekBar.setProgress((int) (currentposition * 1.0f /totalLength * 100));
 
                 }
+
 //                int newIndex=player.getCurrentWindowIndex()+1;
 //                Log.d("CurrentSeek",player.getCurrentPosition()+"<<<>>>"+(int) ((player.getCurrentPosition()*newIndex) * 1.0f / totalLength * 100)+">>>");
             }
@@ -475,5 +516,36 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 //                seekBar.setProgress((int) (player.getCurrentPosition()*player.getCurrentWindowIndex() * 1.0f / totalLength * 100));
 //                seekBar.setSecondaryProgress(player.getBufferedPercentage());            }
         }
+    }
+
+    public void changeTimeTextView(long milliSec)
+    {
+//       long hour= TimeUnit.MILLISECONDS.toHours(millesecound);
+        long sec = (milliSec/1000) % 60;
+        long min = ((milliSec/1000) / 60) % 60;
+        long hour = ((milliSec/1000) / 60) / 60;
+//        long sec = (totalLength/1000) % 60;
+//        long min = ((totalLength/1000) / 60) % 60;
+//        long hour = ((totalLength/1000) / 60) / 60;
+        String secd=""+(milliSec/1000) % 60;
+        String mind=""+((milliSec/1000) / 60) % 60;
+        String hourd=""+((milliSec/1000) / 60) / 60;
+        if(sec<10)
+        {
+            secd="0"+secd;
+        }
+        if(min<10)
+        {
+            mind="0"+mind;
+        }
+        if(hour<10)
+        {
+            hourd="0"+hourd;
+        }
+       String currentTImestamp=hourd+":"+mind+":"+secd;
+
+        timeText.setText(currentTImestamp+"/"+totalTimeTImestamp);
+//        timeText.setText((hour>10)?hour:"0"+hour);
+//       timeText.setText(((milliSec/1000) / 60) / 60>0?((milliSec/1000) / 60) / 60:"0"+((milliSec/1000) / 60) / 60+":"+TimeUnit.MILLISECONDS.toMinutes(millesecound)+":"+TimeUnit.MILLISECONDS.toSeconds(millesecound));
     }
 }

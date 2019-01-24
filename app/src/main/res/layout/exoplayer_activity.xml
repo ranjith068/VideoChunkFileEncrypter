@@ -35,6 +35,13 @@
                 android:layout_height="wrap_content"
                 android:progressBackgroundTint="@color/white"
                 android:theme="@style/AppTheme.SeekBar" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_below="@+id/seek"
+                  android:gravity="center"
+                  android:id="@+id/time_text"
+                  android:textColor="@color/white"
+                        android:text="svasdvasdv"
+        android:layout_marginTop="10dp"></TextView>
     </RelativeLayout>
 
 </LinearLayout>
