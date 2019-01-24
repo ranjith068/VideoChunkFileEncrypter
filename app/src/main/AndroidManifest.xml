@@ -18,7 +18,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DecryptedExoPlayerActivity"/>
+        <activity android:name=".DecryptedExoPlayerActivity"
+                  android:theme="@style/AppThemeNoActionBar"
+                  android:screenOrientation="landscape"
+       />
     </application>
 
 </manifest>

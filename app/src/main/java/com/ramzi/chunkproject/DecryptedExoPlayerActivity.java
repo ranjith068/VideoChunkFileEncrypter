@@ -1,11 +1,13 @@
 package com.ramzi.chunkproject;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -22,6 +24,7 @@ import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.PlaybackControlView;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.*;
@@ -30,6 +33,7 @@ import com.ramzi.chunkproject.file.GatheringFilePiecesAsync;
 import com.ramzi.chunkproject.player.MediaFileCallback;
 //import com.ramzi.chunkproject.player.PlayerEventListener;
 import com.ramzi.chunkproject.player.encryptionsource.EncryptedFileDataSourceFactory;
+import com.ramzi.chunkproject.player.gestures.GestureListener;
 import com.ramzi.chunkproject.utils.HelperUtils;
 
 import javax.crypto.Cipher;
@@ -40,6 +44,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import static com.ramzi.chunkproject.player.gestures.GestureListener.ONE_FINGER;
 import static com.ramzi.chunkproject.utils.HelperUtils.SECOUND_TO_SPLIT;
 
 
@@ -91,6 +96,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.exoplayer_activity);
         seekBar = (SeekBar) findViewById(R.id.seek);
         timeText=(TextView)findViewById(R.id.time_text);
@@ -173,21 +179,21 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 
     private void openFullscreenDialog() {
 
-        ((ViewGroup) mExoPlayerView.getParent()).removeView(mExoPlayerView);
-        mFullScreenDialog.addContentView(mExoPlayerView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(DecryptedExoPlayerActivity.this, R.drawable.ic_fullscreen_skrink));
-        mExoPlayerFullscreen = true;
-        mFullScreenDialog.show();
+//        ((ViewGroup) mExoPlayerView.getParent()).removeView(mExoPlayerView);
+//        mFullScreenDialog.addContentView(mExoPlayerView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+//        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(DecryptedExoPlayerActivity.this, R.drawable.ic_fullscreen_skrink));
+//        mExoPlayerFullscreen = true;
+//        mFullScreenDialog.show();
     }
 
 
     private void closeFullscreenDialog() {
 
-        ((ViewGroup) mExoPlayerView.getParent()).removeView(mExoPlayerView);
-        ((FrameLayout) findViewById(R.id.main_media_frame)).addView(mExoPlayerView);
-        mExoPlayerFullscreen = false;
-        mFullScreenDialog.dismiss();
-        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(DecryptedExoPlayerActivity.this, R.drawable.ic_fullscreen_expand));
+//        ((ViewGroup) mExoPlayerView.getParent()).removeView(mExoPlayerView);
+//        ((FrameLayout) findViewById(R.id.main_media_frame)).addView(mExoPlayerView);
+//        mExoPlayerFullscreen = false;
+//        mFullScreenDialog.dismiss();
+//        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(DecryptedExoPlayerActivity.this, R.drawable.ic_fullscreen_expand));
     }
 
 
@@ -217,6 +223,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
         TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
         player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
         mExoPlayerView.setPlayer(player);
+        mExoPlayerView.setUseController(false);
 
         boolean haveResumePosition = mResumeWindow != C.INDEX_UNSET;
 
@@ -250,11 +257,13 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
         if (mExoPlayerView == null) {
 
             mExoPlayerView = (PlayerView) findViewById(R.id.exoplayer);
-            initFullscreenDialog();
-            initFullscreenButton();
+
+//            initFullscreenDialog();
+//            initFullscreenButton();
             DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
             DataSource.Factory dataSourceFactory = new EncryptedFileDataSourceFactory(mCipher, mSecretKeySpec, mIvParameterSpec, bandwidthMeter);
             ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+            setUpGestureControls();
 
 //                Log.d("Playing location", "Data" + mEncryptedFile.getAbsolutePath());
 //                Uri uri = Uri.fromFile(mEncryptedFile);
@@ -303,6 +312,11 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
             mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(DecryptedExoPlayerActivity.this, R.drawable.ic_fullscreen_skrink));
             mFullScreenDialog.show();
         }
+    }
+
+    private void setUpGestureControls() {
+        mExoPlayerView.setOnTouchListener(new ExVidPlayerGestureListener(DecryptedExoPlayerActivity.this));
+
     }
 
 
@@ -354,6 +368,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
                 lastindex=totalIndex;
                 player.prepare(mediaSource);
                 player.setPlayWhenReady(true);
+                mExoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
             }
         }
 
@@ -582,4 +597,121 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 //        timeText.setText((hour>10)?hour:"0"+hour);
 //       timeText.setText(((milliSec/1000) / 60) / 60>0?((milliSec/1000) / 60) / 60:"0"+((milliSec/1000) / 60) / 60+":"+TimeUnit.MILLISECONDS.toMinutes(millesecound)+":"+TimeUnit.MILLISECONDS.toSeconds(millesecound));
     }
+
+
+
+    private class ExVidPlayerGestureListener extends GestureListener {
+        ExVidPlayerGestureListener(Context ctx) {
+            super(ctx);
+        }
+
+        @Override public void onTap() {
+           /* if (root.getVisibility() == View.VISIBLE) {
+                root.setVisibility(View.GONE);
+            } else {
+                exVidPlayer.showControls();
+            }*/
+        }
+
+        @Override public void onHorizontalScroll(MotionEvent event, float delta) {
+
+            Log.d("tendiz","swiping horizontaly"+delta);
+
+        }
+
+        @Override public void onVerticalScroll(MotionEvent event, float delta) {
+
+            if (event.getPointerCount() == ONE_FINGER) {
+//                updateBrightnessProgressBar(extractVerticalDeltaScale(-delta, pBarBrighness));
+                Log.d("tendiz","GO FOR BRIGness");
+            } else {
+                Log.d("tendiz","GO FOR Volume");
+
+//                updateVolumeProgressBar(extractVerticalDeltaScale(-delta, pBarVolume));
+            }
+        }
+
+        @Override public void onSwipeRight() {
+            Log.d("tendiz","Swipe right");
+
+        }
+
+        @Override public void onSwipeLeft() {
+            Log.d("tendiz","Swipe left");
+
+        }
+
+        @Override public void onSwipeBottom() {
+            Log.d("tendiz","Swipe left");
+
+        }
+
+        @Override public void onSwipeTop() {
+            Log.d("tendiz","Swipe left");
+
+        }
+    }
+
+
+
+
+
+
+
+
+
+    /*currentApiVersion = android.os.Build.VERSION.SDK_INT;
+
+    final int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            | View.SYSTEM_UI_FLAG_FULLSCREEN
+            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+
+// This work only for android 4.4+
+if(currentApiVersion >= Build.VERSION_CODES.KITKAT)
+    {
+
+        getWindow().getDecorView().setSystemUiVisibility(flags);
+
+        // Code below is to handle presses of Volume up or Volume down.
+        // Without this, after pressing volume buttons, the navigation bar will
+        // show up and won't hide
+        final View decorView = getWindow().getDecorView();
+        decorView
+                .setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
+                {
+
+                    @Override
+                    public void onSystemUiVisibilityChange(int visibility)
+                    {
+                        if((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
+                        {
+                            decorView.setSystemUiVisibility(flags);
+                        }
+                    }
+                });
+    }
+
+
+
+    @SuppressLint("NewApi")
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus)
+    {
+        super.onWindowFocusChanged(hasFocus);
+        if(currentApiVersion >= Build.VERSION_CODES.KITKAT && hasFocus)
+        {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
+
+    }*/
+
 }

@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
-              android:layout_height="match_parent"
+              android:layout_height="match_parent" xmlns:app="http://schemas.android.com/apk/res-auto"
               android:orientation="vertical">
 
     <FrameLayout
             android:id="@+id/main_media_frame"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="0.5"
+            android:layout_height="match_parent"
             android:background="#000000">
 
         <com.google.android.exoplayer2.ui.PlayerView
                 android:id="@+id/exoplayer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                app:resize_mode="fit"
                 android:gravity="center" />
 
     </FrameLayout>
 
     <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="0.5"
-            android:background="#000"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:layout_alignParentBottom="true"
             android:gravity="center"
 
     >
@@ -39,9 +39,9 @@
         android:layout_below="@+id/seek"
                   android:gravity="center"
                   android:id="@+id/time_text"
-                  android:textColor="@color/white"
+                  android:textColor="#000"
                         android:text="svasdvasdv"
         android:layout_marginTop="10dp"></TextView>
     </RelativeLayout>
 
-</LinearLayout>
+</RelativeLayout>
