@@ -364,12 +364,45 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
         Toast.makeText(getApplicationContext(), "Gathering files failed", Toast.LENGTH_SHORT).show();
 
     }
+    public void seekToTime() {
+//        long currentSeekingTime = (long) (currentProgress / 100.0f * totalLength);
+//        int index = (int) Math.floor(currentSeekingTime / SECOUND_TO_SPLIT);
+        int index=player.getCurrentWindowIndex();
+        long currentIndexSeekValue = 0;
+//        seekBar.se
+       /* if ((index + 1) == lastindex) {
 
+            currentIndexSeekValue = currentSeekingTime - (SECOUND_TO_SPLIT * index);
+        } else if(index==0)
+        {
+            currentIndexSeekValue = currentSeekingTime;
+        }
+        else{
+//            currentIndexSeekValue = (SECOUND_TO_SPLIT * (index + 1)) - currentSeekingTime;
+            currentIndexSeekValue = currentSeekingTime - (SECOUND_TO_SPLIT * index);
+
+        }*/
+        if(index==0)
+        {
+            currentIndexSeekValue = player.getContentPosition();
+        }
+        else{
+//            currentIndexSeekValue = (SECOUND_TO_SPLIT * (index + 1)) - currentSeekingTime;
+//            currentIndexSeekValue = player.getContentPosition() - (SECOUND_TO_SPLIT * index);
+            currentIndexSeekValue = ((SECOUND_TO_SPLIT * index)+player.getContentPosition());
+
+
+        }
+        Log.d("Doollllll","currentseek"+currentIndexSeekValue);
+        changeTimeTextView(currentIndexSeekValue);
+
+
+    }
 
     public void seekToPart(int currentProgress,boolean shouldSeek) {
-
+        seekToTime();
         long currentSeekingTime = (long) (currentProgress / 100.0f * totalLength);
-        changeTimeTextView(currentSeekingTime);
+//        changeTimeTextView(currentSeekingTime);
         int index = (int) Math.floor(currentSeekingTime / SECOUND_TO_SPLIT);
         long currentIndexSeekValue = 0;
        /* if ((index + 1) == lastindex) {
@@ -487,12 +520,13 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 
     public void updateProgress()
     {
+        seekToTime();
+
         if(isPlayer) {
             Log.d("getcurrent","lalu innnn>>"+player.getCurrentPosition());
 
             long delayMs = TimeUnit.SECONDS.toMillis(1);
             mHandler.postDelayed(updateProgressAction, delayMs);
-            seekToPart(seekBar.getProgress(),false);
 
             if(!isSeeking)
             {
