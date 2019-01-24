@@ -89,6 +89,9 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
     String totalTimeTImestamp;
     int screenWidth;
 
+boolean gestureSeek=false;
+int guestureSeekIndex=0;
+long guestureSeekPosition=0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -302,15 +305,9 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 
         } else {
             initExoPlayer();
+            startPlayer();
         }
 
-
-        if (mExoPlayerFullscreen) {
-            ((ViewGroup) mExoPlayerView.getParent()).removeView(mExoPlayerView);
-            mFullScreenDialog.addContentView(mExoPlayerView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(DecryptedExoPlayerActivity.this, R.drawable.ic_fullscreen_skrink));
-            mFullScreenDialog.show();
-        }
     }
 
     private void setUpGestureControls() {
@@ -332,16 +329,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 
         super.onPause();
 
-        if (mExoPlayerView != null && mExoPlayerView.getPlayer() != null) {
-
-            mResumeWindow = mExoPlayerView.getPlayer().getCurrentWindowIndex();
-            mResumePosition = Math.max(0, mExoPlayerView.getPlayer().getContentPosition());
-            mExoPlayerView.getPlayer().release();
-
-        }
-
-        if (mFullScreenDialog != null)
-            mFullScreenDialog.dismiss();
+       pausePlayer();
     }
 
     @Override
@@ -605,11 +593,41 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 //       timeText.setText(((milliSec/1000) / 60) / 60>0?((milliSec/1000) / 60) / 60:"0"+((milliSec/1000) / 60) / 60+":"+TimeUnit.MILLISECONDS.toMinutes(millesecound)+":"+TimeUnit.MILLISECONDS.toSeconds(millesecound));
     }
 
-
+int currentIndex=0;
 
     private class ExVidPlayerGestureListener extends GestureListener {
         ExVidPlayerGestureListener(Context ctx) {
             super(ctx);
+        }
+
+        @Override
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+//            Log.d("index",currentIndex+"oyaaaaaaaaaaaaaaaaaaaaaaaa"+motionEvent.getAction());
+//            if() {
+            if(gestureSeek)
+            {
+                if (motionEvent.getAction() == 0) {
+                    Log.d("get>>>","yes got new index"+currentIndex);
+
+
+
+                } else if (motionEvent.getAction() == 1) {
+                    if(player!=null) {
+                        try {
+                            Log.d("get>>>",guestureSeekPosition+"yes got ne2222w index"+guestureSeekIndex);
+
+                            player.seekTo(guestureSeekIndex, guestureSeekPosition);
+                        }
+                        catch (Exception e)
+                        {
+
+                        }
+                    }
+                    startPlayer();
+                    gestureSeek=false;
+                }
+            }
+            return super.onTouch(view, motionEvent);
         }
 
         @Override public void onTap() {
@@ -623,24 +641,107 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
         @Override public void onHorizontalScroll(MotionEvent event, float delta) {
 //            1920swiping horizontaly1034.3951
 //            1920swiping horizontaly-1671.9392
+            gestureSeek=true;
+            currentIndex = player.getCurrentWindowIndex();
+
+            pausePlayer();
             Log.d("tendiz",screenWidth+"swiping horizontaly"+delta+">>>>motion"+event.getAction());
 
 //            Log.d("tendiz","Scroll to incrise="+(screenWidth-delta)/31.25);
 //            Log.d("tendiz","Scroll to incrise="+delta*31.25);
             long perscreen = SECOUND_TO_SPLIT / screenWidth;
 
+
+
             if(delta*perscreen<0)
             {
                 seekStatus.setText("Last Seeks to Reverse>>> -"+TimeUnit.MILLISECONDS.toSeconds((long) (0-(delta*perscreen))));
                 Log.d("tendiz",delta*perscreen+"Scroll to incrise= Minus"+(SECOUND_TO_SPLIT+(delta*perscreen)));
+//                if(player.getCurrentPosition()>)
+//                long seekingPosition=player.getc
+//                player.seekTo(player.getCurrentWindowIndex(),p);
+                seekToGesture((long) (0-(delta*perscreen)),false);
 
             }
             else
             {
                 Log.d("tendiz",perscreen+"Scroll to incrise= Adding "+delta*perscreen);
                 seekStatus.setText("Last Seeks to Forward>>> +"+TimeUnit.MILLISECONDS.toSeconds((long) (delta*perscreen)));
+                seekToGesture((long) (delta*perscreen),true);
 
             }
+
+        }
+
+        private void seekToGesture(long seekValue,boolean forward) {
+            Log.d("gesturerchunk","/////////////////////////////////////start////////////////////////////");
+//            if(forward)
+//            {
+//                currentPosition=currentPosition+seekValue;
+//            }
+//            else
+//            {
+//                currentPosition=currentPosition-seekValue;
+//            }
+
+            long currentPosition=0;
+            Log.d("gesturerchunk",player.getCurrentWindowIndex()+"incomming seek value"+seekValue);
+
+            if(currentIndex==0) {
+//                Log.d("PAPAPAPA", (int) (player.getCurrentPosition() * 1.0f / totalLength * 100) + ">>>");
+//                seekBar.setProgress((int) (player.getCurrentPosition() * 1.0f / totalLength * 100));
+                currentPosition=player.getCurrentPosition();
+            }
+            else
+            {
+                currentPosition=player.getCurrentPosition()+(HelperUtils.SECOUND_TO_SPLIT *currentIndex);
+//                Log.d("PAPAPAPA", (int) (currentposition * 1.0f /totalLength * 100) + ">>>");
+//                seekBar.setProgress((int) (currentposition * 1.0f /totalLength * 100));
+
+
+            }
+            Log.d("gesturerchunk",player.getCurrentWindowIndex()+"beforecurrent position"+player.getCurrentWindowIndex());
+            if(forward)
+            {
+                currentPosition=currentPosition+seekValue;
+            }
+            else
+            {
+                currentPosition=currentPosition-seekValue;
+            }
+            Log.d("gesturerchunk",player.getCurrentWindowIndex()+"after seek added current position"+currentPosition);
+
+            int index = (int) Math.floor(currentPosition / SECOUND_TO_SPLIT);
+            Log.d("gesturerchunk",player.getCurrentWindowIndex()+"got new index "+index);
+
+            long newIndexSeekValue;
+            if(index==0)
+            {
+                newIndexSeekValue = currentPosition;
+            }
+            else{
+//            currentIndexSeekValue = (SECOUND_TO_SPLIT * (index + 1)) - currentSeekingTime;
+                newIndexSeekValue = currentPosition - (SECOUND_TO_SPLIT * index);
+
+            }
+            guestureSeekIndex=index;
+            guestureSeekPosition=newIndexSeekValue;
+            Log.d("gesturerchunk",player.getCurrentWindowIndex()+"got new index "+index+">>>>>>newIndexSeekValue>>"+newIndexSeekValue);
+
+//            player.seekTo(index, newIndexSeekValue);
+
+//            Log.d("gesturerchunk","new seek on swipe"+"\n " +
+//                    "index"+index+"\n " +
+//                    "newSeekvalue"+newIndexSeekValue+"\n " +
+//                    "seek diff"+seekValue+"\n"+
+//                    "currnt seek"+currentPosition);
+
+//           if(currentPosition>0&&currentPosition<totalLength) {
+//               player.seekTo(index, newIndexSeekValue);
+//           }
+
+
+            Log.d("gesturerchunk","/////////////////////////////////////END////////////////////////////\n");
 
         }
 
@@ -739,4 +840,17 @@ if(currentApiVersion >= Build.VERSION_CODES.KITKAT)
 
     }*/
 
+
+    private void pausePlayer(){
+        if(player!=null) {
+            player.setPlayWhenReady(false);
+            player.getPlaybackState();
+        }
+    }
+    private void startPlayer(){
+        if(player!=null) {
+            player.setPlayWhenReady(true);
+            player.getPlaybackState();
+        }
+    }
 }
