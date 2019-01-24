@@ -153,6 +153,19 @@ long guestureSeekPosition=0;
 
         });
 
+
+
+            mExoPlayerView = (PlayerView) findViewById(R.id.exoplayer);
+
+            DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+            DataSource.Factory dataSourceFactory = new EncryptedFileDataSourceFactory(mCipher, mSecretKeySpec, mIvParameterSpec, bandwidthMeter);
+            ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+            setUpGestureControls();
+
+            File chunkFileDirectory = new File(getIntent().getExtras().getString("file_dir"));
+            new GatheringFilePiecesAsync(chunkFileDirectory, DecryptedExoPlayerActivity.this, dataSourceFactory, extractorsFactory).execute();
+
+
     }
 
 
@@ -256,57 +269,27 @@ long guestureSeekPosition=0;
 
         super.onResume();
 
-        if (mExoPlayerView == null) {
-
-            mExoPlayerView = (PlayerView) findViewById(R.id.exoplayer);
-
-//            initFullscreenDialog();
-//            initFullscreenButton();
-            DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-            DataSource.Factory dataSourceFactory = new EncryptedFileDataSourceFactory(mCipher, mSecretKeySpec, mIvParameterSpec, bandwidthMeter);
-            ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
-            setUpGestureControls();
-
-//                Log.d("Playing location", "Data" + mEncryptedFile.getAbsolutePath());
-//                Uri uri = Uri.fromFile(mEncryptedFile);
-//                Uri uri2 = Uri.fromFile(mEncryptedFile2);
-//                Uri uri3 = Uri.fromFile(mEncryptedFile3);
-//                Uri uri4 = Uri.fromFile(mEncryptedFile4);
-//            DefaultBandwidthMeter  defaultBandwidthMeter = new DefaultBandwidthMeter();
+//        if (mExoPlayerView == null) {
 //
-//            DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this,
-//                    Util.getUserAgent(this, "mediaPlayerSample"),defaultBandwidthMeter);
-//            MediaSource videoSource = new ExtractorMediaSource(uri, dataSourceFactory, extractorsFactory, null, null);
-//            MediaSource videoSource2 = new ExtractorMediaSource(uri2, dataSourceFactory, extractorsFactory, null, null);
-//            MediaSource videoSource3 = new ExtractorMediaSource(uri3, dataSourceFactory, extractorsFactory, null, null);
+//            mExoPlayerView = (PlayerView) findViewById(R.id.exoplayer);
 //
-//            MediaSource videoSource4 = new ExtractorMediaSource(uri4, dataSourceFactory, extractorsFactory, null, null);
-
-               /* MediaSource videoSource = new ExtractorMediaSource.Factory(dataSourceFactory).setExtractorsFactory(extractorsFactory)
-                        .createMediaSource(uri);
-                MediaSource videoSource2 = new ExtractorMediaSource.Factory(dataSourceFactory).setExtractorsFactory(extractorsFactory)
-                        .createMediaSource(uri2);
-                MediaSource videoSource3 = new ExtractorMediaSource.Factory(dataSourceFactory).setExtractorsFactory(extractorsFactory)
-                        .createMediaSource(uri3);
-                MediaSource videoSource4 = new ExtractorMediaSource.Factory(dataSourceFactory).setExtractorsFactory(extractorsFactory)
-                        .createMediaSource(uri4);
-//            player.prepare(videoSource);
-
-//            player.prepare(new MergingMediaSource(videoSource,videoSource2));
-                MediaSource[] mediaSourcesToLoad = new MediaSource[4];
-                mediaSourcesToLoad[0] = videoSource;
-                mediaSourcesToLoad[1] = videoSource2;
-                mediaSourcesToLoad[2] = videoSource3;
-                mediaSourcesToLoad[3] = videoSource4;
-                 mediaSourcess = new ConcatenatingMediaSource(mediaSourcesToLoad);*/
-            File chunkFileDirectory = new File(getIntent().getExtras().getString("file_dir"));
-            new GatheringFilePiecesAsync(chunkFileDirectory, DecryptedExoPlayerActivity.this, dataSourceFactory, extractorsFactory).execute();
+//            DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+//            DataSource.Factory dataSourceFactory = new EncryptedFileDataSourceFactory(mCipher, mSecretKeySpec, mIvParameterSpec, bandwidthMeter);
+//            ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+//            setUpGestureControls();
+//
+//            File chunkFileDirectory = new File(getIntent().getExtras().getString("file_dir"));
+//            new GatheringFilePiecesAsync(chunkFileDirectory, DecryptedExoPlayerActivity.this, dataSourceFactory, extractorsFactory).execute();
+//
+//
+//        } else {
+//            initExoPlayer();
+//            startPlayer();
+//        }
 
 
-        } else {
-            initExoPlayer();
             startPlayer();
-        }
+
 
     }
 
@@ -497,7 +480,7 @@ long guestureSeekPosition=0;
 
 
             player.setPlayWhenReady(false);
-            player.seekTo(0);
+//            player.seekTo(0);
             if (mHandler != null) {
 
                 mHandler.removeCallbacks(updateProgressAction);
@@ -620,10 +603,14 @@ int currentIndex=0;
                         }
                         catch (Exception e)
                         {
+                            Log.d("get>>>","yes error");
+
+                            player.seekTo(guestureSeekIndex, totalLength-(guestureSeekIndex*SECOUND_TO_SPLIT)-1000);
 
                         }
                     }
-                    startPlayer();
+//                    startPlayer();
+                    player.setPlayWhenReady(true);
                     gestureSeek=false;
                 }
             }
