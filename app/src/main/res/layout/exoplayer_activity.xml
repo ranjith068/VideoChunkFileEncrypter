@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent" xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:orientation="vertical">
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:orientation="vertical">
 
     <FrameLayout
             android:id="@+id/main_media_frame"
@@ -15,41 +15,54 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:resize_mode="fit"
-                android:gravity="center" />
+                android:gravity="center"/>
 
     </FrameLayout>
+
 
     <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
+            android:background="@drawable/black_gradient"
             android:layout_alignParentBottom="true"
             android:gravity="center"
+            android:id="@+id/player_control"
 
     >
 
 
-        <SeekBar
+        <android.support.v7.widget.AppCompatSeekBar
                 android:id="@+id/seek"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:progressBackgroundTint="@color/white"
-                android:theme="@style/AppTheme.SeekBar" />
+                android:theme="@style/AppTheme.SeekBar"/>
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_below="@+id/seek"
+                  android:layout_below="@+id/seek"
                   android:gravity="center"
                   android:id="@+id/time_text"
-                  android:textColor="@color/red"
-                        android:text="time"
-        android:layout_marginTop="10dp"></TextView>
+                  android:textColor="#4caf50"
+                  android:text="time"
+                  android:layout_marginTop="10dp"/>
+        <ImageView android:layout_width="30dp"
+                   android:layout_height="30dp"
+                   android:padding="5dp"
+                   android:layout_below="@+id/time_text"
+                   android:layout_marginTop="5dp"
+                   android:id="@+id/pause_play_button"
+                   android:src="@mipmap/ic_launcher"
+                   android:layout_centerInParent="true"
+        />
 
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                  android:layout_below="@+id/time_text"
-                  android:gravity="center"
-                  android:id="@+id/seek_ststus"
-                  android:textColor="@color/red"
-                  android:text="seek status"
-                  android:layout_marginTop="10dp"></TextView>
+
     </RelativeLayout>
-
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+              android:gravity="center"
+              android:id="@+id/seek_ststus"
+              android:textColor="@color/red"
+              android:textSize="30dp"
+              android:textStyle="bold"
+              android:layout_centerInParent="true"
+              android:text=""
+              android:layout_marginTop="10dp"/>
 </RelativeLayout>

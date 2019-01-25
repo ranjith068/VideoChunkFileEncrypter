@@ -118,10 +118,7 @@ long guestureSeekPosition=0;
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        mEncryptedFile = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME);
-//        mEncryptedFile2 = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME2);
-//        mEncryptedFile3 = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME3);
-//        mEncryptedFile4 = new File(Environment.getExternalStorageDirectory(), ENCRYPTED_FILE_NAME4);
+
 
         seekBar.setMax(100);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -363,7 +360,7 @@ long guestureSeekPosition=0;
         int index=player.getCurrentWindowIndex();
         long currentIndexSeekValue = 0;
 //        seekBar.se
-       /* if ((index + 1) == lastindex) {
+       /* if ((index + 1) == lastIndex) {
 
             currentIndexSeekValue = currentSeekingTime - (SECOUND_TO_SPLIT * index);
         } else if(index==0)
@@ -398,7 +395,7 @@ long guestureSeekPosition=0;
 //        changeTimeTextView(currentSeekingTime);
         int index = (int) Math.floor(currentSeekingTime / SECOUND_TO_SPLIT);
         long currentIndexSeekValue = 0;
-       /* if ((index + 1) == lastindex) {
+       /* if ((index + 1) == lastIndex) {
 
             currentIndexSeekValue = currentSeekingTime - (SECOUND_TO_SPLIT * index);
         } else if(index==0)

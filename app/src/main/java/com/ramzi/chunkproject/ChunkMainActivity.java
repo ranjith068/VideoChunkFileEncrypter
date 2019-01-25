@@ -179,7 +179,7 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
     public void startPlayChunk(View v) {
 
         if (new File(selectedChunkFileTextView.getText().toString()).exists()) {
-            startActivity(new Intent(getApplicationContext(), DecryptedExoPlayerActivity.class).putExtra("file_dir", selectedChunkFileTextView.getText().toString()));
+            startActivity(new Intent(getApplicationContext(), DecryptedExoPlayerBackupActivity.class).putExtra("file_dir", selectedChunkFileTextView.getText().toString()));
         }
 
     }
