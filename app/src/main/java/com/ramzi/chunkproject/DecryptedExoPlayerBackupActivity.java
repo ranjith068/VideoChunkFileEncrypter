@@ -74,7 +74,8 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     boolean gestureSeek = false;
     int gestureSeekIndex = 0;
     long gestureSeekPosition = 0;
-
+    private boolean isresume = false;
+    ConcatenatingMediaSource mediaMergeSource;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +88,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         timeText = findViewById(R.id.time_text);
         seekStatus = findViewById(R.id.seek_ststus);
         mExoPlayerView = findViewById(R.id.exoplayer);
-        playerControlLayer=findViewById(R.id.player_control);
+        playerControlLayer = findViewById(R.id.player_control);
         playPauseImageView = findViewById(R.id.pause_play_button);
 
 
@@ -164,7 +165,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
                     pausePlayer();
                 } else if (play.getIconState() == PlayIconDrawable.IconState.PLAY) {
-                   startPlayer();
+                    startPlayer();
 
                 }
 
@@ -181,21 +182,35 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
         TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
         player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
-        mExoPlayerView.setPlayer(player);
-        mExoPlayerView.setUseController(false);
-        player.addListener(this);
 
     }
 
 
+//    @Override
+//    protected void onResume() {
+//
+//        super.onResume();
+//
+////        startPlayer();
+//
+//
+//    }
+
+
     @Override
-    protected void onResume() {
+    protected void onRestart() {
+        super.onRestart();
 
-        super.onResume();
-
-        startPlayer();
-
-
+        if (isresume) {
+            // isresume=false;
+            player.stop();
+            player.clearVideoSurface();
+            // isInPlayer = false;
+            initExoPlayer();
+            loadPlayer();
+        } else {
+            loadPlayer();
+        }
     }
 
     private void setUpGestureControls() {
@@ -215,8 +230,13 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     protected void onPause() {
 
         super.onPause();
-
-        pausePlayer();
+        
+        isresume = true;
+        pauseIndex = player.getCurrentPeriodIndex();
+        pausePosition = player.getCurrentPosition();
+        player.stop();
+        player.release();
+//        pausePlayer();
     }
 
     @Override
@@ -224,12 +244,14 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         if (mediaSource != null) {
             if (mExoPlayerView != null && player != null) {
                 totalLength = totalTime;
-                totalTimeStamp = String.format("%02d", ((totalLength / 1000) / 60) / 60) + ":" + String.format("%02d", ((totalLength / 1000) / 60) % 60) + ":" + String.format("%02d", (totalLength/1000) % 60);
-                player.prepare(mediaSource);
-                play.setIconState(PlayIconDrawable.IconState.PAUSE);
+                totalTimeStamp = String.format("%02d", ((totalLength / 1000) / 60) / 60) + ":" + String.format("%02d", ((totalLength / 1000) / 60) % 60) + ":" + String.format("%02d", (totalLength / 1000) % 60);
+                mediaMergeSource = mediaSource;
+                loadPlayer();
+               /* player.prepare(mediaSource);
+                play.animateToState(PlayIconDrawable.IconState.PAUSE);
 
                 player.setPlayWhenReady(true);
-                mExoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
+                mExoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);*/
             }
         }
 
@@ -306,7 +328,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
         if (playbackState == Player.STATE_ENDED) {
             if (play != null) {
-                play.setIconState(PlayIconDrawable.IconState.PLAY);
+                play.animateToState(PlayIconDrawable.IconState.PLAY);
             }
 
             player.setPlayWhenReady(false);
@@ -422,7 +444,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
                         }
                     }
 //                    startPlayer();
-                    play.setIconState(PlayIconDrawable.IconState.PAUSE);
+                    play.animateToState(PlayIconDrawable.IconState.PAUSE);
                     player.setPlayWhenReady(true);
                     gestureSeek = false;
                 }
@@ -605,7 +627,7 @@ if(currentApiVersion >= Build.VERSION_CODES.KITKAT)
     private void pausePlayer() {
         if (player != null) {
             if (play != null) {
-                play.setIconState(PlayIconDrawable.IconState.PLAY);
+                play.animateToState(PlayIconDrawable.IconState.PLAY);
             }
 
             player.setPlayWhenReady(false);
@@ -616,11 +638,40 @@ if(currentApiVersion >= Build.VERSION_CODES.KITKAT)
     private void startPlayer() {
         if (player != null) {
             if (play != null) {
-                play.setIconState(PlayIconDrawable.IconState.PAUSE);
+                play.animateToState(PlayIconDrawable.IconState.PAUSE);
             }
 
             player.setPlayWhenReady(true);
             player.getPlaybackState();
         }
     }
+
+
+    private void loadPlayer() {
+
+        if (mediaMergeSource != null) {
+            player.addListener(this);
+            player.prepare(mediaMergeSource);
+            mExoPlayerView.setUseController(false);
+            mExoPlayerView.setPlayer(player);
+            player.setPlayWhenReady(true);
+            play.animateToState(PlayIconDrawable.IconState.PAUSE);
+
+            mExoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
+
+            if (isresume) {
+                try {
+
+                    player.seekTo(pauseIndex, pausePosition);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                isresume = false;
+            }
+        }
+    }
+
+    int pauseIndex;
+    long pausePosition;
 }
