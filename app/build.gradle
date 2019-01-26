@@ -36,11 +36,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
+    }
     externalNativeBuild {
         cmake {
             path "CMakeLists.txt"
         }
     }
+
 }
 
 dependencies {
@@ -51,18 +57,11 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    compile 'com.squareup.dagger:dagger-compiler:1.2.2'
-    annotationProcessor 'com.squareup.dagger:dagger-compiler:1.2.2'
-    annotationProcessor 'com.squareup.dagger:dagger:1.2.2'
-
-    compile 'com.squareup.dagger:dagger:1.2.2'
-
-    annotationProcessor 'com.jakewharton:butterknife:5.1.2'
-    compile 'com.jakewharton:butterknife:5.1.2'
-    androidTestCompile 'com.squareup.assertj:assertj-android:1.0.0'
+    androidTestImplementation 'com.squareup.assertj:assertj-android:1.0.0'
 
 
     implementation project(':FFmpegAndroid')
     implementation 'com.obsez.android.lib.filechooser:filechooser:1.1.11'
+    implementation 'com.google.android.exoplayer:exoplayer:2.9.0'
 
 }
