@@ -4,8 +4,12 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.graphics.Color;
+import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.ColorInt;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.content.res.AppCompatResources;
@@ -36,7 +40,9 @@ import com.ramzi.chunkproject.player.MediaFileCallback;
 import com.ramzi.chunkproject.player.animation.PlayIconDrawable;
 import com.ramzi.chunkproject.player.encryptionsource.EncryptedFileDataSourceFactory;
 import com.ramzi.chunkproject.player.gestures.GestureListener;
-import com.ramzi.chunkproject.player.utils.BrightnessUtils;
+import com.ramzi.chunkproject.player.utils.AudioReactor;
+import com.ramzi.chunkproject.utils.AppPreferences;
+import com.ramzi.chunkproject.utils.Constants;
 import com.ramzi.chunkproject.utils.HelperUtils;
 
 import javax.crypto.Cipher;
@@ -83,22 +89,31 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     long gestureSeekPosition = 0;
     private boolean isresume = false;
     ConcatenatingMediaSource mediaMergeSource;
-    RelativeLayout brView;
+    RelativeLayout brView,volumeView;
     ImageView brIV;
     ProgressBar brPG;
+    ProgressBar vPG;
+    ImageView vIV;
     int maxGestureLength;
 
-    public static String TAG="chunk";
+    public static String TAG = "chunk";
+
+    AppPreferences playerPrefrence;
+    AudioReactor audioReactor;
+   int maxVolume = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-//        WindowManager.LayoutParams lp = getWindow().getAttributes();
-//        lp.screenBrightness = PlayerHelper.getScreenBrightness(getApplicationContext());
-//        getWindow().setAttributes(lp);
+        playerPrefrence = new AppPreferences(getApplicationContext(), Constants.BASE_PREF);
+        if (playerPrefrence.getFloat(Constants.BRIGHTNESS_FLOAT_PREF) != -100f) {
+            WindowManager.LayoutParams lp = getWindow().getAttributes();
+            lp.screenBrightness = playerPrefrence.getFloat(Constants.BRIGHTNESS_FLOAT_PREF);
+            getWindow().setAttributes(lp);
+        }
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         setContentView(R.layout.exoplayer_activity);
         seekBar = findViewById(R.id.seek);
@@ -107,10 +122,14 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         mExoPlayerView = findViewById(R.id.exoplayer);
         playerControlLayer = findViewById(R.id.player_control);
         playPauseImageView = findViewById(R.id.pause_play_button);
-        mainContainer=findViewById(R.id.main_container);
-        brView=findViewById(R.id.brightnessRelativeLayout);
-        brIV=findViewById(R.id.brightnessImageView);
-        brPG=findViewById(R.id.brightnessProgressBar);
+        mainContainer = findViewById(R.id.main_container);
+        brView = findViewById(R.id.brightnessRelativeLayout);
+        brIV = findViewById(R.id.brightnessImageView);
+        brPG = findViewById(R.id.brightnessProgressBar);
+        volumeView=findViewById(R.id.volumeRelativeLayout);
+        vPG=findViewById(R.id.volumeProgressBar);
+        vIV=findViewById(R.id.volumeImageView);
+
         byte[] key = CipherCommon.PBKDF2("kolmklja".toCharArray(), CipherCommon.salt);
         mSecretKeySpec = new SecretKeySpec(key, CipherCommon.AES_ALGORITHM);
         mIvParameterSpec = new IvParameterSpec(CipherCommon.iv);
@@ -121,21 +140,6 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         } catch (Exception e) {
             e.printStackTrace();
         }
-        mExoPlayerView.addOnLayoutChangeListener((view, l, t, r, b, ol, ot, or, ob) -> {
-            if (l != ol || t != ot || r != or || b != ob) {
-                // Use smaller value to be consistent between screen orientations
-                // (and to make usage easier)
-                int width = r - l, height = b - t;
-                maxGestureLength = (int) (Math.min(width, height) * MAX_GESTURE_LENGTH);
-
-                if (DEBUG) Log.d(TAG, "maxGestureLength = " + maxGestureLength);
-
-//                volumeProgressBar.setMax(maxGestureLength);
-                brPG.setMax(maxGestureLength);
-
-//                setInitialGestureValues();
-            }
-        });
 
         seekBar.setMax(100);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -162,11 +166,32 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         });
 
 
+
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
         DataSource.Factory dataSourceFactory = new EncryptedFileDataSourceFactory(mCipher, mSecretKeySpec, mIvParameterSpec, bandwidthMeter);
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
         setUpGestureControls();
         initExoPlayer();
+
+
+        mExoPlayerView.addOnLayoutChangeListener((view, l, t, r, b, ol, ot, or, ob) -> {
+            if (l != ol || t != ot || r != or || b != ob) {
+                // Use smaller value to be consistent between screen orientations
+                // (and to make usage easier)
+                int width = r - l, height = b - t;
+                maxGestureLength = (int) (Math.min(width, height) * MAX_GESTURE_LENGTH);
+
+                if (DEBUG) Log.d(TAG, "maxGestureLength = " + maxGestureLength);
+
+//                volumeProgressBar.setMax(maxGestureLength);
+                brPG.setMax(maxGestureLength);
+                vPG.setMax(maxGestureLength);
+
+
+                setInitialGestureValues();
+            }
+        });
+
 
         File chunkFileDirectory = new File(getIntent().getExtras().getString("file_dir"));
         new GatheringFilePiecesAsync(chunkFileDirectory, DecryptedExoPlayerBackupActivity.this, dataSourceFactory, extractorsFactory).execute();
@@ -216,6 +241,8 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
         TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
         player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
+        audioReactor=new AudioReactor(getApplicationContext(),player);
+        maxVolume=audioReactor.getMaxVolume();
 
     }
 
@@ -248,14 +275,14 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     }
 
     private void setUpGestureControls() {
-        mExoPlayerView.setOnTouchListener(new ExVidPlayerGestureListener(DecryptedExoPlayerBackupActivity.this,mExoPlayerView));
+        mExoPlayerView.setOnTouchListener(new ExVidPlayerGestureListener(DecryptedExoPlayerBackupActivity.this, mExoPlayerView));
         mExoPlayerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 mExoPlayerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 mExoPlayerView.getHeight(); //height is ready
                 screenWidth = mExoPlayerView.getWidth();
-                screenHeigth=mExoPlayerView.getHeight();
+                screenHeigth = mExoPlayerView.getHeight();
             }
         });
     }
@@ -451,8 +478,8 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     int currentIndex = 0;
 
     private class ExVidPlayerGestureListener extends GestureListener {
-        ExVidPlayerGestureListener(Context ctx,View rootview) {
-            super(ctx,rootview);
+        ExVidPlayerGestureListener(Context ctx, View rootview) {
+            super(ctx, rootview);
         }
 
         @Override
@@ -599,14 +626,18 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
         @Override
         public void brightness(int value) {
-         Log.d("Brigthnesss",value+">>>");
+            Log.d("Brigthnesss", value + ">>>");
+
             brPG.incrementProgressBy(value);
             float currentProgressPercent =
                     (float) brPG.getProgress() / maxGestureLength;
             WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
             layoutParams.screenBrightness = currentProgressPercent;
             getWindow().setAttributes(layoutParams);
+            if (playerPrefrence != null) {
+                playerPrefrence.saveFloatData(Constants.BRIGHTNESS_FLOAT_PREF, currentProgressPercent);
 
+            }
             if (DEBUG) Log.d(TAG, "onScroll().brightnessControl, currentBrightness = " + currentProgressPercent);
 
             final int resId =
@@ -624,6 +655,39 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         }
 
         @Override
+        public void volume(int value) {
+
+            Log.d("oldvalue",value+">>>>>");
+            vPG.incrementProgressBy(value);
+            float currentProgressPercent =
+                    (float) vPG.getProgress() / maxGestureLength;
+            int currentVolume = (int) (maxVolume * currentProgressPercent);
+            if(audioReactor!=null) {
+                Log.d("Chapppa",currentVolume+">>>>chappa"+maxVolume);
+                audioReactor.setVolume(currentVolume);
+            }
+
+            if (DEBUG) Log.d(TAG, "onScroll().volumeControl, currentVolume = " + currentVolume);
+
+            final int resId =
+                    currentProgressPercent <= 0 ? R.drawable.ic_volume_off_white_72dp
+                            : currentProgressPercent < 0.25 ? R.drawable.ic_volume_mute_white_72dp
+                            : currentProgressPercent < 0.75 ? R.drawable.ic_volume_down_white_72dp
+                            : R.drawable.ic_volume_up_white_72dp;
+
+            vIV.setImageDrawable(
+                    AppCompatResources.getDrawable(getApplicationContext(), resId)
+            );
+
+            if (volumeView.getVisibility() != View.VISIBLE) {
+                animateView(volumeView, SCALE_AND_ALPHA, true, 200);
+            }
+            if (brView.getVisibility() == View.VISIBLE) {
+                brView.setVisibility(View.GONE);
+            }
+        }
+
+        @Override
         public void onScrollEnd() {
             onScrollOver();
         }
@@ -636,62 +700,48 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
 
 
+    /*private void showSystemUi() {
+        if (DEBUG) Log.d(TAG, "showSystemUi() called");
+        if (playerImpl != null && playerImpl.queueVisible) return;
 
-    /*currentApiVersion = android.os.Build.VERSION.SDK_INT;
-
-    final int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            | View.SYSTEM_UI_FLAG_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-
-// This work only for android 4.4+
-if(currentApiVersion >= Build.VERSION_CODES.KITKAT)
-    {
-
-        getWindow().getDecorView().setSystemUiVisibility(flags);
-
-        // Code below is to handle presses of Volume up or Volume down.
-        // Without this, after pressing volume buttons, the navigation bar will
-        // show up and won't hide
-        final View decorView = getWindow().getDecorView();
-        decorView
-                .setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
-                {
-
-                    @Override
-                    public void onSystemUiVisibilityChange(int visibility)
-                    {
-                        if((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
-                        {
-                            decorView.setSystemUiVisibility(flags);
-                        }
-                    }
-                });
-    }
-
-
-
-    @SuppressLint("NewApi")
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus)
-    {
-        super.onWindowFocusChanged(hasFocus);
-        if(currentApiVersion >= Build.VERSION_CODES.KITKAT && hasFocus)
-        {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        final int visibility;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            visibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+        } else {
+            visibility = View.STATUS_BAR_VISIBLE;
         }
 
-    }*/
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            @ColorInt final int systenUiColor =
+                    ActivityCompat.getColor(getApplicationContext(), R.color.video_overlay_color);
+            getWindow().setStatusBarColor(systenUiColor);
+            getWindow().setNavigationBarColor(systenUiColor);
+        }
 
+        getWindow().getDecorView().setSystemUiVisibility(visibility);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
 
+    private void hideSystemUi() {
+        if (DEBUG) Log.d(TAG, "hideSystemUi() called");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            int visibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                visibility |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+            }
+            getWindow().getDecorView().setSystemUiVisibility(visibility);
+        }
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
+
+*/
     private void pausePlayer() {
         if (player != null) {
             if (play != null) {
@@ -744,12 +794,13 @@ if(currentApiVersion >= Build.VERSION_CODES.KITKAT)
     long pausePosition;
 
     private final float MAX_GESTURE_LENGTH = 0.75f;
+
     private void onScrollOver() {
         if (DEBUG) Log.d(TAG, "onScrollEnd() called");
 
-//        if (playerImpl.getVolumeRelativeLayout().getVisibility() == View.VISIBLE) {
-//            animateView(playerImpl.getVolumeRelativeLayout(), SCALE_AND_ALPHA, false, 200, 200);
-//        }
+        if (volumeView.getVisibility() == View.VISIBLE) {
+            animateView(volumeView, SCALE_AND_ALPHA, false, 200, 200);
+        }
         if (brView.getVisibility() == View.VISIBLE) {
             animateView(brView, SCALE_AND_ALPHA, false, 200, 200);
         }
@@ -757,5 +808,18 @@ if(currentApiVersion >= Build.VERSION_CODES.KITKAT)
 //        if (playerImpl.isControlsVisible() && playerImpl.getCurrentState() == STATE_PLAYING) {
 //            playerImpl.hideControls(DEFAULT_CONTROLS_DURATION, DEFAULT_CONTROLS_HIDE_TIME);
 //        }
+    }
+
+    private void setInitialGestureValues() {
+        if (audioReactor!= null) {
+            final float currentVolumeNormalized = (float) audioReactor.getVolume() / audioReactor.getMaxVolume();
+            vPG.setProgress((int) (vPG.getMax() * currentVolumeNormalized));
+        }
+        if (playerPrefrence != null) {
+            if (playerPrefrence.getFloat(Constants.BRIGHTNESS_FLOAT_PREF) != -100f) {
+
+                brPG.setProgress((int) (brPG.getMax() * playerPrefrence.getFloat(Constants.BRIGHTNESS_FLOAT_PREF)));
+            }
+        }
     }
 }

@@ -175,6 +175,9 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
                         @Override
                         public void onChoosePath(String path, File pathFile) {
                             selectedChunkFileTextView.setText(path);
+                            if (new File(selectedChunkFileTextView.getText().toString()).exists()) {
+                                startActivity(new Intent(getApplicationContext(), DecryptedExoPlayerBackupActivity.class).putExtra("file_dir", selectedChunkFileTextView.getText().toString()));
+                            }
 //                            Toast.makeText(MainActivity.this, "FOLDER: " + path, Toast.LENGTH_SHORT).show();
                         }
                     })

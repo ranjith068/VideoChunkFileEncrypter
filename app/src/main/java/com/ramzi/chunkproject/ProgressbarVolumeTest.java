@@ -1,5 +1,6 @@
 package com.ramzi.chunkproject;
 
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -25,19 +26,27 @@ import static com.ramzi.chunkproject.player.animation.AnimationUtils.animateView
  */
 public class ProgressbarVolumeTest extends AppCompatActivity {
     public static final String TAG="test";
-    RelativeLayout rootview,brView;
+    RelativeLayout rootview,brView,volumeView;
     ImageView brIV;
     ProgressBar brPG;
+    ProgressBar vPG;
+    ImageView vIV;
     int maxGestureLength;
     GestureDetector gestureDetector;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
+
         setContentView(R.layout.brightnessvoulumetest);
         rootview=findViewById(R.id.rootview);
         brView=findViewById(R.id.brightnessRelativeLayout);
         brIV=findViewById(R.id.brightnessImageView);
         brPG=findViewById(R.id.brightnessProgressBar);
+        volumeView=findViewById(R.id.volumeRelativeLayout);
+        vPG=findViewById(R.id.volumeProgressBar);
+        vIV=findViewById(R.id.volumeImageView);
+
         rootview.addOnLayoutChangeListener((view, l, t, r, b, ol, ot, or, ob) -> {
             if (l != ol || t != ot || r != or || b != ob) {
                 // Use smaller value to be consistent between screen orientations

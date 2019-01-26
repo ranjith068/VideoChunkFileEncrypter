@@ -764,6 +764,11 @@ int currentIndex=0;
         }
 
         @Override
+        public void volume(int value) {
+
+        }
+
+        @Override
         public void onScrollEnd() {
 
         }

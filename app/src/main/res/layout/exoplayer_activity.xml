@@ -67,6 +67,31 @@
               android:text=""
               android:layout_marginTop="10dp"/>
     <RelativeLayout
+            android:id="@+id/volumeRelativeLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:background="@drawable/background_oval_black_transparent"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+        <ProgressBar
+                android:id="@+id/volumeProgressBar"
+                style="?android:progressBarStyleHorizontal"
+                android:layout_width="128dp"
+                android:layout_height="128dp"
+                android:indeterminate="false"
+                android:progressDrawable="@drawable/progress_circular_white" />
+
+        <ImageView
+                android:id="@+id/volumeImageView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                tools:ignore="ContentDescription"
+                tools:src="@drawable/ic_volume_up_white_72dp" />
+    </RelativeLayout>
+    <RelativeLayout
             android:id="@+id/brightnessRelativeLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

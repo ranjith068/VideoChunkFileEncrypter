@@ -122,8 +122,12 @@ abstract public class GestureListener implements View.OnTouchListener,IGestureLi
                 if (playerImpl.getBrightnessRelativeLayout().getVisibility() == View.VISIBLE) {
                     playerImpl.getBrightnessRelativeLayout().setVisibility(View.GONE);
                 }*/
+                Log.d("koppikoooooo",(int) distanceY+">>>>>");
+                volume((int) distanceY);
       } else if (isBrightnessGestureEnabled && acceptBrightnessArea) {
 //        brPG.incrementProgressBy((int) distanceY);
+        Log.d("koppikoooooZZZZo",(int) distanceY+">>>>>");
+
         brightness((int) distanceY);
 
 //      } else {
