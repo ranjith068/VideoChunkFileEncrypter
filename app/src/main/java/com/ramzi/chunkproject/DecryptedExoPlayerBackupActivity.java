@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.AppCompatSeekBar;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -35,6 +36,7 @@ import com.ramzi.chunkproject.player.MediaFileCallback;
 import com.ramzi.chunkproject.player.animation.PlayIconDrawable;
 import com.ramzi.chunkproject.player.encryptionsource.EncryptedFileDataSourceFactory;
 import com.ramzi.chunkproject.player.gestures.GestureListener;
+import com.ramzi.chunkproject.player.utils.BrightnessUtils;
 import com.ramzi.chunkproject.utils.HelperUtils;
 
 import javax.crypto.Cipher;
@@ -43,6 +45,9 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
+import static com.ramzi.chunkproject.BuildConfig.DEBUG;
+import static com.ramzi.chunkproject.player.animation.AnimationUtils.Type.SCALE_AND_ALPHA;
+import static com.ramzi.chunkproject.player.animation.AnimationUtils.animateView;
 import static com.ramzi.chunkproject.utils.HelperUtils.SECOUND_TO_SPLIT;
 
 //import com.ramzi.chunkproject.player.PlayerEventListener;
@@ -57,6 +62,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
     SimpleExoPlayer player;
     private PlayerView mExoPlayerView;
+    RelativeLayout mainContainer;
 
 
     AppCompatSeekBar seekBar;
@@ -71,18 +77,29 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     String totalTimeStamp;
 
     int screenWidth;
+    int screenHeigth;
     boolean gestureSeek = false;
     int gestureSeekIndex = 0;
     long gestureSeekPosition = 0;
     private boolean isresume = false;
     ConcatenatingMediaSource mediaMergeSource;
+    RelativeLayout brView;
+    ImageView brIV;
+    ProgressBar brPG;
+    int maxGestureLength;
 
+    public static String TAG="chunk";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+//        WindowManager.LayoutParams lp = getWindow().getAttributes();
+//        lp.screenBrightness = PlayerHelper.getScreenBrightness(getApplicationContext());
+//        getWindow().setAttributes(lp);
+
         setContentView(R.layout.exoplayer_activity);
         seekBar = findViewById(R.id.seek);
         timeText = findViewById(R.id.time_text);
@@ -90,8 +107,10 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         mExoPlayerView = findViewById(R.id.exoplayer);
         playerControlLayer = findViewById(R.id.player_control);
         playPauseImageView = findViewById(R.id.pause_play_button);
-
-
+        mainContainer=findViewById(R.id.main_container);
+        brView=findViewById(R.id.brightnessRelativeLayout);
+        brIV=findViewById(R.id.brightnessImageView);
+        brPG=findViewById(R.id.brightnessProgressBar);
         byte[] key = CipherCommon.PBKDF2("kolmklja".toCharArray(), CipherCommon.salt);
         mSecretKeySpec = new SecretKeySpec(key, CipherCommon.AES_ALGORITHM);
         mIvParameterSpec = new IvParameterSpec(CipherCommon.iv);
@@ -102,7 +121,21 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         } catch (Exception e) {
             e.printStackTrace();
         }
+        mExoPlayerView.addOnLayoutChangeListener((view, l, t, r, b, ol, ot, or, ob) -> {
+            if (l != ol || t != ot || r != or || b != ob) {
+                // Use smaller value to be consistent between screen orientations
+                // (and to make usage easier)
+                int width = r - l, height = b - t;
+                maxGestureLength = (int) (Math.min(width, height) * MAX_GESTURE_LENGTH);
 
+                if (DEBUG) Log.d(TAG, "maxGestureLength = " + maxGestureLength);
+
+//                volumeProgressBar.setMax(maxGestureLength);
+                brPG.setMax(maxGestureLength);
+
+//                setInitialGestureValues();
+            }
+        });
 
         seekBar.setMax(100);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -172,6 +205,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
             }
         });
 
+
     }
 
 
@@ -214,13 +248,14 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     }
 
     private void setUpGestureControls() {
-        mExoPlayerView.setOnTouchListener(new ExVidPlayerGestureListener(DecryptedExoPlayerBackupActivity.this));
+        mExoPlayerView.setOnTouchListener(new ExVidPlayerGestureListener(DecryptedExoPlayerBackupActivity.this,mExoPlayerView));
         mExoPlayerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 mExoPlayerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 mExoPlayerView.getHeight(); //height is ready
                 screenWidth = mExoPlayerView.getWidth();
+                screenHeigth=mExoPlayerView.getHeight();
             }
         });
     }
@@ -230,7 +265,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     protected void onPause() {
 
         super.onPause();
-        
+
         isresume = true;
         pauseIndex = player.getCurrentPeriodIndex();
         pausePosition = player.getCurrentPosition();
@@ -345,7 +380,8 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     @Override
     protected void onStop() {
         super.onStop();
-
+//        PlayerHelper.setScreenBrightness(getApplicationContext(),
+//                getWindow().getAttributes().screenBrightness);
         if (player != null) {
             player.release();
         }
@@ -415,8 +451,8 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     int currentIndex = 0;
 
     private class ExVidPlayerGestureListener extends GestureListener {
-        ExVidPlayerGestureListener(Context ctx) {
-            super(ctx);
+        ExVidPlayerGestureListener(Context ctx,View rootview) {
+            super(ctx,rootview);
         }
 
         @Override
@@ -439,7 +475,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
                         } catch (Exception e) {
                             Log.d("get>>>", "yes error");
 
-                            player.seekTo(gestureSeekIndex, totalLength - (gestureSeekIndex * SECOUND_TO_SPLIT) - 1000);
+//                            player.seekTo(gestureSeekIndex, totalLength - (gestureSeekIndex * SECOUND_TO_SPLIT) - 1000);
 
                         }
                     }
@@ -526,14 +562,15 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         @Override
         public void onVerticalScroll(MotionEvent event, float delta) {
 
-            if (event.getPointerCount() == ONE_FINGER) {
-//                updateBrightnessProgressBar(extractVerticalDeltaScale(-delta, pBarBrighness));
-                Log.d("tendiz", "GO FOR BRIGness");
-            } else {
-                Log.d("tendiz", "GO FOR Volume");
-
-//                updateVolumeProgressBar(extractVerticalDeltaScale(-delta, pBarVolume));
-            }
+//            if (event.getPointerCount() == ONE_FINGER) {
+//                setBrg(pBarBrighness,delta);
+////                updateBrightnessProgressBar(extractVerticalDeltaScale(-delta, pBarBrighness));
+//                Log.d("tendiz", "GO FOR BRIGness");
+//            } else {
+//                Log.d("tendiz", "GO FOR Volume");
+//
+////                updateVolumeProgressBar(extractVerticalDeltaScale(-delta, pBarVolume));
+//            }
         }
 
         @Override
@@ -558,6 +595,37 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         public void onSwipeTop() {
             Log.d("tendiz", "Swipe left");
 
+        }
+
+        @Override
+        public void brightness(int value) {
+         Log.d("Brigthnesss",value+">>>");
+            brPG.incrementProgressBy(value);
+            float currentProgressPercent =
+                    (float) brPG.getProgress() / maxGestureLength;
+            WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
+            layoutParams.screenBrightness = currentProgressPercent;
+            getWindow().setAttributes(layoutParams);
+
+            if (DEBUG) Log.d(TAG, "onScroll().brightnessControl, currentBrightness = " + currentProgressPercent);
+
+            final int resId =
+                    currentProgressPercent < 0.25 ? R.drawable.ic_brightness_low_white_72dp
+                            : currentProgressPercent < 0.75 ? R.drawable.ic_brightness_medium_white_72dp
+                            : R.drawable.ic_brightness_high_white_72dp;
+
+            brIV.setImageDrawable(
+                    AppCompatResources.getDrawable(getApplicationContext(), resId)
+            );
+
+            if (brView.getVisibility() != View.VISIBLE) {
+                animateView(brView, SCALE_AND_ALPHA, true, 200);
+            }
+        }
+
+        @Override
+        public void onScrollEnd() {
+            onScrollOver();
         }
     }
 
@@ -674,4 +742,20 @@ if(currentApiVersion >= Build.VERSION_CODES.KITKAT)
 
     int pauseIndex;
     long pausePosition;
+
+    private final float MAX_GESTURE_LENGTH = 0.75f;
+    private void onScrollOver() {
+        if (DEBUG) Log.d(TAG, "onScrollEnd() called");
+
+//        if (playerImpl.getVolumeRelativeLayout().getVisibility() == View.VISIBLE) {
+//            animateView(playerImpl.getVolumeRelativeLayout(), SCALE_AND_ALPHA, false, 200, 200);
+//        }
+        if (brView.getVisibility() == View.VISIBLE) {
+            animateView(brView, SCALE_AND_ALPHA, false, 200, 200);
+        }
+
+//        if (playerImpl.isControlsVisible() && playerImpl.getCurrentState() == STATE_PLAYING) {
+//            playerImpl.hideControls(DEFAULT_CONTROLS_DURATION, DEFAULT_CONTROLS_HIDE_TIME);
+//        }
+    }
 }

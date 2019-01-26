@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+                android:id="@+id/main_container"
                 android:layout_width="match_parent" android:layout_height="match_parent"
                 android:orientation="vertical">
 
@@ -65,4 +66,30 @@
               android:layout_centerInParent="true"
               android:text=""
               android:layout_marginTop="10dp"/>
+    <RelativeLayout
+            android:id="@+id/brightnessRelativeLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:background="@drawable/background_oval_black_transparent"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+        <ProgressBar
+                android:id="@+id/brightnessProgressBar"
+                style="?android:progressBarStyleHorizontal"
+                android:layout_width="128dp"
+                android:layout_height="128dp"
+                android:indeterminate="false"
+                android:progressDrawable="@drawable/progress_circular_white" />
+
+        <ImageView
+                android:id="@+id/brightnessImageView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                tools:ignore="ContentDescription"
+                tools:src="@drawable/ic_brightness_high_white_72dp" />
+    </RelativeLayout>
+
 </RelativeLayout>

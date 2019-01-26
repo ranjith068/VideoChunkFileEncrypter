@@ -21,4 +21,7 @@ public interface IGestureListener {
 
   void onSwipeTop();
 
+  void brightness(int value);
+  void onScrollEnd();
+
 }

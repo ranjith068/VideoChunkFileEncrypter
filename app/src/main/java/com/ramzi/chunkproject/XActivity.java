@@ -3,7 +3,6 @@ package com.ramzi.chunkproject;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Handler;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -38,14 +37,12 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-import static com.ramzi.chunkproject.player.gestures.GestureListener.ONE_FINGER;
 import static com.ramzi.chunkproject.utils.HelperUtils.SECOUND_TO_SPLIT;
 
 
-public class DecryptedExoPlayerActivity extends AppCompatActivity implements Player.EventListener, MediaFileCallback {
+public class XActivity extends AppCompatActivity implements Player.EventListener, MediaFileCallback {
 
     private final String STATE_RESUME_WINDOW = "resumeWindow";
     private final String STATE_RESUME_POSITION = "resumePosition";
@@ -160,7 +157,7 @@ long guestureSeekPosition=0;
             setUpGestureControls();
 
             File chunkFileDirectory = new File(getIntent().getExtras().getString("file_dir"));
-            new GatheringFilePiecesAsync(chunkFileDirectory, DecryptedExoPlayerActivity.this, dataSourceFactory, extractorsFactory).execute();
+            new GatheringFilePiecesAsync(chunkFileDirectory, XActivity.this, dataSourceFactory, extractorsFactory).execute();
 
 
     }
@@ -193,7 +190,7 @@ long guestureSeekPosition=0;
 
 //        ((ViewGroup) mExoPlayerView.getParent()).removeView(mExoPlayerView);
 //        mFullScreenDialog.addContentView(mExoPlayerView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-//        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(DecryptedExoPlayerActivity.this, R.drawable.ic_fullscreen_skrink));
+//        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(XActivity.this, R.drawable.ic_fullscreen_skrink));
 //        mExoPlayerFullscreen = true;
 //        mFullScreenDialog.show();
     }
@@ -205,7 +202,7 @@ long guestureSeekPosition=0;
 //        ((FrameLayout) findViewById(R.id.main_media_frame)).addView(mExoPlayerView);
 //        mExoPlayerFullscreen = false;
 //        mFullScreenDialog.dismiss();
-//        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(DecryptedExoPlayerActivity.this, R.drawable.ic_fullscreen_expand));
+//        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(XActivity.this, R.drawable.ic_fullscreen_expand));
     }
 
 
@@ -276,7 +273,7 @@ long guestureSeekPosition=0;
 //            setUpGestureControls();
 //
 //            File chunkFileDirectory = new File(getIntent().getExtras().getString("file_dir"));
-//            new GatheringFilePiecesAsync(chunkFileDirectory, DecryptedExoPlayerActivity.this, dataSourceFactory, extractorsFactory).execute();
+//            new GatheringFilePiecesAsync(chunkFileDirectory, XActivity.this, dataSourceFactory, extractorsFactory).execute();
 //
 //
 //        } else {
@@ -291,7 +288,7 @@ long guestureSeekPosition=0;
     }
 
     private void setUpGestureControls() {
-        mExoPlayerView.setOnTouchListener(new ExVidPlayerGestureListener(DecryptedExoPlayerActivity.this));
+        mExoPlayerView.setOnTouchListener(new ExVidPlayerGestureListener(XActivity.this,mExoPlayerView));
         mExoPlayerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -576,8 +573,8 @@ long guestureSeekPosition=0;
 int currentIndex=0;
 
     private class ExVidPlayerGestureListener extends GestureListener {
-        ExVidPlayerGestureListener(Context ctx) {
-            super(ctx);
+        ExVidPlayerGestureListener(Context ctx,View rootview) {
+            super(ctx,rootview);
         }
 
         @Override
@@ -758,6 +755,16 @@ int currentIndex=0;
 
         @Override public void onSwipeTop() {
             Log.d("tendiz","Swipe left");
+
+        }
+
+        @Override
+        public void brightness(int value) {
+
+        }
+
+        @Override
+        public void onScrollEnd() {
 
         }
     }

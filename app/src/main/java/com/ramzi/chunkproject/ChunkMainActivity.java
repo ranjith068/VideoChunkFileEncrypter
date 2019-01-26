@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -61,6 +62,13 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
         selectedChunkFileTextView = (TextView) findViewById(R.id.selected_chunk_tv);
         loadFFMpegBinary();
         checkPermisson(ChunkMainActivity.this);
+//        boolean settingsCanWrite = Settings.System.canWrite(getApplicationContext());
+//
+//        if(!settingsCanWrite) {
+//            // If do not have write settings permission then open the Can modify system settings panel.
+//            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+//            startActivity(intent);
+//        }
     }
 
     @Override
@@ -145,11 +153,12 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
 
     public void startChunkFrameConversion(View v) {
 
-        final File videoFile = new File(selectedVideotextView.getText().toString());
-        if (videoFile.exists()) {
-            new FFmpegConversion(ChunkMainActivity.this, getApplicationContext(), videoFile.getAbsolutePath(), 0, HelperUtils.finalDestination(videoFile.getName() + ".partfile")).splitimages();
-
-        }
+//        final File videoFile = new File(selectedVideotextView.getText().toString());
+//        if (videoFile.exists()) {
+//            new FFmpegConversion(ChunkMainActivity.this, getApplicationContext(), videoFile.getAbsolutePath(), 0, HelperUtils.finalDestination(videoFile.getName() + ".partfile")).splitimages();
+//
+//        }
+        startActivity(new Intent(getApplicationContext(),ProgressbarVolumeTest.class));
 
     }
 
