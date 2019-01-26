@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+                android:id="@+id/main_container"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:orientation="vertical">
+
+    <FrameLayout
+            android:id="@+id/main_media_frame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#000000">
+
+        <com.google.android.exoplayer2.ui.PlayerView
+                android:id="@+id/exoplayer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:resize_mode="fit"
+                android:gravity="center"/>
+
+    </FrameLayout>
+
+
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/video_overlay_color"
+            android:layout_alignParentBottom="true"
+            android:gravity="center"
+            android:id="@+id/player_control"
+
+    >
+
+
+        <android.support.v7.widget.AppCompatSeekBar
+                android:id="@+id/seek"
+                android:layout_marginTop="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progressBackgroundTint="@color/white"
+                android:theme="@style/AppTheme.SeekBar"/>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                  android:layout_below="@+id/seek"
+                  android:gravity="center"
+                  android:id="@+id/time_text"
+                  android:textColor="#4caf50"
+                  android:text="time"
+                  android:layout_marginTop="10dp"/>
+        <ImageView android:layout_width="30dp"
+                   android:layout_height="30dp"
+                   android:padding="5dp"
+                   android:layout_below="@+id/time_text"
+                   android:layout_marginTop="5dp"
+                   android:id="@+id/pause_play_button"
+                   android:src="@mipmap/ic_launcher"
+                   android:layout_centerInParent="true"
+        />
+
+
+    </RelativeLayout>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+              android:gravity="center"
+              android:id="@+id/seek_ststus"
+              android:textColor="#4caf50"
+              android:textSize="30dp"
+              android:textStyle="bold"
+              android:layout_centerInParent="true"
+              android:text=""
+              android:layout_marginTop="10dp"/>
+    <RelativeLayout
+            android:id="@+id/volumeRelativeLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:background="@drawable/background_oval_black_transparent"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+        <ProgressBar
+                android:id="@+id/volumeProgressBar"
+                style="?android:progressBarStyleHorizontal"
+                android:layout_width="128dp"
+                android:layout_height="128dp"
+                android:indeterminate="false"
+                android:progressDrawable="@drawable/progress_circular_white"/>
+
+        <ImageView
+                android:id="@+id/volumeImageView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                tools:ignore="ContentDescription"
+                tools:src="@drawable/ic_volume_up_white_72dp"/>
+    </RelativeLayout>
+    <RelativeLayout
+            android:id="@+id/brightnessRelativeLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:background="@drawable/background_oval_black_transparent"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+        <ProgressBar
+                android:id="@+id/brightnessProgressBar"
+                style="?android:progressBarStyleHorizontal"
+                android:layout_width="128dp"
+                android:layout_height="128dp"
+                android:indeterminate="false"
+                android:progressDrawable="@drawable/progress_circular_white"/>
+
+        <ImageView
+                android:id="@+id/brightnessImageView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                tools:ignore="ContentDescription"
+                tools:src="@drawable/ic_brightness_high_white_72dp"/>
+    </RelativeLayout>
+
+    <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:id="@+id/toolbarLayer"
+                    android:orientation="horizontal"
+                    android:layout_alignParentTop="true"
+    android:background="@color/video_overlay_color">
+        <ImageView android:layout_width="50dp" android:layout_height="50dp"
+                   android:layout_centerVertical="true"
+                   android:gravity="center"
+                   android:layout_gravity="center"
+                   android:onClick="back"
+                   android:scaleType="centerInside"
+        android:src="@drawable/ic_arrow_back_black_24dp"/>
+        <TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:gravity="center"
+                  android:layout_gravity="center"
+                  android:layout_marginLeft="10dp"
+                  android:layout_marginRight="10dp"
+                  android:textSize="16sp"
+                  android:textStyle="bold"
+                  android:textColor="@color/white"
+        android:text="Crypto Player"/>
+
+    </LinearLayout>
+
+</RelativeLayout>
