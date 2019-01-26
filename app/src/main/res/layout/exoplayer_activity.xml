@@ -24,7 +24,7 @@
     <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/black_gradient"
+            android:background="@color/video_overlay_color"
             android:layout_alignParentBottom="true"
             android:gravity="center"
             android:id="@+id/player_control"
@@ -34,6 +34,7 @@
 
         <android.support.v7.widget.AppCompatSeekBar
                 android:id="@+id/seek"
+                android:layout_marginTop="4dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:progressBackgroundTint="@color/white"
@@ -60,7 +61,7 @@
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
               android:gravity="center"
               android:id="@+id/seek_ststus"
-              android:textColor="@color/red"
+              android:textColor="#4caf50"
               android:textSize="30dp"
               android:textStyle="bold"
               android:layout_centerInParent="true"
@@ -81,7 +82,7 @@
                 android:layout_width="128dp"
                 android:layout_height="128dp"
                 android:indeterminate="false"
-                android:progressDrawable="@drawable/progress_circular_white" />
+                android:progressDrawable="@drawable/progress_circular_white"/>
 
         <ImageView
                 android:id="@+id/volumeImageView"
@@ -89,7 +90,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 tools:ignore="ContentDescription"
-                tools:src="@drawable/ic_volume_up_white_72dp" />
+                tools:src="@drawable/ic_volume_up_white_72dp"/>
     </RelativeLayout>
     <RelativeLayout
             android:id="@+id/brightnessRelativeLayout"
@@ -106,7 +107,7 @@
                 android:layout_width="128dp"
                 android:layout_height="128dp"
                 android:indeterminate="false"
-                android:progressDrawable="@drawable/progress_circular_white" />
+                android:progressDrawable="@drawable/progress_circular_white"/>
 
         <ImageView
                 android:id="@+id/brightnessImageView"
@@ -114,7 +115,33 @@
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 tools:ignore="ContentDescription"
-                tools:src="@drawable/ic_brightness_high_white_72dp" />
+                tools:src="@drawable/ic_brightness_high_white_72dp"/>
     </RelativeLayout>
+
+    <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:id="@+id/toolbarLayer"
+                    android:orientation="horizontal"
+                    android:layout_alignParentTop="true"
+    android:background="@color/video_overlay_color">
+        <ImageView android:layout_width="50dp" android:layout_height="50dp"
+                   android:layout_centerVertical="true"
+                   android:gravity="center"
+                   android:layout_gravity="center"
+                   android:onClick="back"
+                   android:scaleType="centerInside"
+        android:src="@drawable/ic_arrow_back_black_24dp"/>
+        <TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:gravity="center"
+                  android:layout_gravity="center"
+                  android:layout_marginLeft="10dp"
+                  android:layout_marginRight="10dp"
+                  android:textSize="16sp"
+                  android:textStyle="bold"
+                  android:textColor="@color/white"
+        android:text="Crypto Player"/>
+
+    </LinearLayout>
 
 </RelativeLayout>

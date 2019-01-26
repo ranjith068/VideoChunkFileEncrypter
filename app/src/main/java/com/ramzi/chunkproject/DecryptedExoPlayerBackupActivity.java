@@ -76,6 +76,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     ImageView playPauseImageView;
     PlayIconDrawable play;
     RelativeLayout playerControlLayer;
+    LinearLayout toolbarLayer;
 
     long totalLength;
     boolean isPlayer = false;
@@ -89,7 +90,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     long gestureSeekPosition = 0;
     private boolean isresume = false;
     ConcatenatingMediaSource mediaMergeSource;
-    RelativeLayout brView,volumeView;
+    RelativeLayout brView, volumeView;
     ImageView brIV;
     ProgressBar brPG;
     ProgressBar vPG;
@@ -100,7 +101,9 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
     AppPreferences playerPrefrence;
     AudioReactor audioReactor;
-   int maxVolume = 0;
+    int maxVolume = 0;
+    final Handler hideControl = new Handler();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -114,7 +117,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
             getWindow().setAttributes(lp);
         }
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
+        hideSystemUi();
         setContentView(R.layout.exoplayer_activity);
         seekBar = findViewById(R.id.seek);
         timeText = findViewById(R.id.time_text);
@@ -126,9 +129,10 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         brView = findViewById(R.id.brightnessRelativeLayout);
         brIV = findViewById(R.id.brightnessImageView);
         brPG = findViewById(R.id.brightnessProgressBar);
-        volumeView=findViewById(R.id.volumeRelativeLayout);
-        vPG=findViewById(R.id.volumeProgressBar);
-        vIV=findViewById(R.id.volumeImageView);
+        volumeView = findViewById(R.id.volumeRelativeLayout);
+        vPG = findViewById(R.id.volumeProgressBar);
+        vIV = findViewById(R.id.volumeImageView);
+        toolbarLayer = findViewById(R.id.toolbarLayer);
 
         byte[] key = CipherCommon.PBKDF2("kolmklja".toCharArray(), CipherCommon.salt);
         mSecretKeySpec = new SecretKeySpec(key, CipherCommon.AES_ALGORITHM);
@@ -164,7 +168,6 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
             }
 
         });
-
 
 
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
@@ -241,8 +244,8 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
         TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
         player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
-        audioReactor=new AudioReactor(getApplicationContext(),player);
-        maxVolume=audioReactor.getMaxVolume();
+        audioReactor = new AudioReactor(getApplicationContext(), player);
+        maxVolume = audioReactor.getMaxVolume();
 
     }
 
@@ -308,7 +311,18 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
                 totalLength = totalTime;
                 totalTimeStamp = String.format("%02d", ((totalLength / 1000) / 60) / 60) + ":" + String.format("%02d", ((totalLength / 1000) / 60) % 60) + ":" + String.format("%02d", (totalLength / 1000) % 60);
                 mediaMergeSource = mediaSource;
+
                 loadPlayer();
+                if (hideControl != null) {
+                    hideControl.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            hideSystemUi();
+                            playerControlLayer.setVisibility(View.GONE);
+                            toolbarLayer.setVisibility(View.GONE);
+                        }
+                    }, 2000);
+                }
                /* player.prepare(mediaSource);
                 play.animateToState(PlayIconDrawable.IconState.PAUSE);
 
@@ -477,6 +491,10 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
     int currentIndex = 0;
 
+    public void back(View view) {
+        finish();
+    }
+
     private class ExVidPlayerGestureListener extends GestureListener {
         ExVidPlayerGestureListener(Context ctx, View rootview) {
             super(ctx, rootview);
@@ -519,10 +537,28 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         public void onTap() {
             if (playerControlLayer.getVisibility() == View.VISIBLE) {
                 playerControlLayer.setVisibility(View.GONE);
+                toolbarLayer.setVisibility(View.GONE);
+                hideSystemUi();
+                try {
+                    hideControl.removeCallbacksAndMessages(null);
+                } catch (Exception e) {
+
+                }
             } else {
                 playerControlLayer.setVisibility(View.VISIBLE);
+                toolbarLayer.setVisibility(View.VISIBLE);
+//                showSystemUi();
+                hideControl.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        hideSystemUi();
+                        playerControlLayer.setVisibility(View.GONE);
+                        toolbarLayer.setVisibility(View.GONE);
+                    }
+                }, 2000);
             }
         }
+
 
         @Override
         public void onHorizontalScroll(MotionEvent event, float delta) {
@@ -589,15 +625,6 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         @Override
         public void onVerticalScroll(MotionEvent event, float delta) {
 
-//            if (event.getPointerCount() == ONE_FINGER) {
-//                setBrg(pBarBrighness,delta);
-////                updateBrightnessProgressBar(extractVerticalDeltaScale(-delta, pBarBrighness));
-//                Log.d("tendiz", "GO FOR BRIGness");
-//            } else {
-//                Log.d("tendiz", "GO FOR Volume");
-//
-////                updateVolumeProgressBar(extractVerticalDeltaScale(-delta, pBarVolume));
-//            }
         }
 
         @Override
@@ -657,13 +684,13 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         @Override
         public void volume(int value) {
 
-            Log.d("oldvalue",value+">>>>>");
+            Log.d("oldvalue", value + ">>>>>");
             vPG.incrementProgressBy(value);
             float currentProgressPercent =
                     (float) vPG.getProgress() / maxGestureLength;
             int currentVolume = (int) (maxVolume * currentProgressPercent);
-            if(audioReactor!=null) {
-                Log.d("Chapppa",currentVolume+">>>>chappa"+maxVolume);
+            if (audioReactor != null) {
+                Log.d("Chapppa", currentVolume + ">>>>chappa" + maxVolume);
                 audioReactor.setVolume(currentVolume);
             }
 
@@ -693,16 +720,8 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         }
     }
 
-
-
-
-
-
-
-
-    /*private void showSystemUi() {
+    private void showSystemUi() {
         if (DEBUG) Log.d(TAG, "showSystemUi() called");
-        if (playerImpl != null && playerImpl.queueVisible) return;
 
         final int visibility;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -741,7 +760,6 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
-*/
     private void pausePlayer() {
         if (player != null) {
             if (play != null) {
@@ -811,7 +829,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     }
 
     private void setInitialGestureValues() {
-        if (audioReactor!= null) {
+        if (audioReactor != null) {
             final float currentVolumeNormalized = (float) audioReactor.getVolume() / audioReactor.getMaxVolume();
             vPG.setProgress((int) (vPG.getMax() * currentVolumeNormalized));
         }
@@ -820,6 +838,17 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
                 brPG.setProgress((int) (brPG.getMax() * playerPrefrence.getFloat(Constants.BRIGHTNESS_FLOAT_PREF)));
             }
+        }
+    }
+
+
+    public void hideControl()
+    {
+        if (playerControlLayer.getVisibility() == View.VISIBLE) {
+            animateView(playerControlLayer, SCALE_AND_ALPHA, false, 400, 200);
+        }
+        if (toolbarLayer.getVisibility() == View.VISIBLE) {
+            animateView(toolbarLayer, SCALE_AND_ALPHA, false, 400, 200);
         }
     }
 }

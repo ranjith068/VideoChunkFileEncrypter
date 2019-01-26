@@ -22,6 +22,7 @@ public interface IGestureListener {
   void onSwipeTop();
 
   void brightness(int value);
+
   void volume(int value);
 
   void onScrollEnd();

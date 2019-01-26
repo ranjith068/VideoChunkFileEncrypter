@@ -23,10 +23,6 @@
                   android:theme="@style/AppThemeNoActionBar"
                   android:screenOrientation="landscape"
        />
-        <activity android:name=".ProgressbarVolumeTest"
-                  android:theme="@style/AppThemeNoActionBar"
-                  android:screenOrientation="landscape"
-        />
     </application>
 
 </manifest>

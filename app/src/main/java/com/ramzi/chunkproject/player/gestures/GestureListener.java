@@ -16,17 +16,14 @@ import static com.ramzi.chunkproject.player.animation.AnimationUtils.animateView
 
 /**
  * Created by Brajendr on 1/26/2017.
+ * Modified and customized By Ramesh M Nair
  */
 
 abstract public class GestureListener implements View.OnTouchListener,IGestureListener {
 
   private final GestureDetector gestureDetector;
-  public static final int ONE_FINGER = 1;
 
   private static final int MOVEMENT_THRESHOLD = 40;
-
-//        private final boolean isVolumeGestureEnabled = PlayerHelper.isVolumeGestureEnabled(getApplicationContext());
-//        private final boolean isBrightnessGestureEnabled = PlayerHelper.isBrightnessGestureEnabled(getApplicationContext());
 
   private final boolean isVolumeGestureEnabled = true;
   private final boolean isBrightnessGestureEnabled = true;
@@ -98,43 +95,12 @@ abstract public class GestureListener implements View.OnTouchListener,IGestureLi
       boolean acceptBrightnessArea = acceptAnyArea || !acceptVolumeArea;
 
       if (isVolumeGestureEnabled && acceptVolumeArea) {
-                /*playerImpl.getVolumeProgressBar().incrementProgressBy((int) distanceY);
-                float currentProgressPercent =
-                        (float) playerImpl.getVolumeProgressBar().getProgress() / playerImpl.getMaxGestureLength();
-                int currentVolume = (int) (maxVolume * currentProgressPercent);
-                playerImpl.getAudioReactor().setVolume(currentVolume);
 
-                if (DEBUG) Log.d(TAG, "onScroll().volumeControl, currentVolume = " + currentVolume);
-
-                final int resId =
-                        currentProgressPercent <= 0 ? R.drawable.ic_volume_off_white_72dp
-                                : currentProgressPercent < 0.25 ? R.drawable.ic_volume_mute_white_72dp
-                                : currentProgressPercent < 0.75 ? R.drawable.ic_volume_down_white_72dp
-                                : R.drawable.ic_volume_up_white_72dp;
-
-                playerImpl.getVolumeImageView().setImageDrawable(
-                        AppCompatResources.getDrawable(getApplicationContext(), resId)
-                );
-
-                if (playerImpl.getVolumeRelativeLayout().getVisibility() != View.VISIBLE) {
-                    animateView(playerImpl.getVolumeRelativeLayout(), SCALE_AND_ALPHA, true, 200);
-                }
-                if (playerImpl.getBrightnessRelativeLayout().getVisibility() == View.VISIBLE) {
-                    playerImpl.getBrightnessRelativeLayout().setVisibility(View.GONE);
-                }*/
-                Log.d("koppikoooooo",(int) distanceY+">>>>>");
                 volume((int) distanceY);
       } else if (isBrightnessGestureEnabled && acceptBrightnessArea) {
-//        brPG.incrementProgressBy((int) distanceY);
-        Log.d("koppikoooooZZZZo",(int) distanceY+">>>>>");
 
         brightness((int) distanceY);
 
-//      } else {
-//        if (Math.abs(deltaY) > SWIPE_THRESHOLD) {
-//          onVerticalScroll(e2,deltaY);
-//        }
-//      }
         return false;
       }
       return true;
@@ -154,7 +120,6 @@ abstract public class GestureListener implements View.OnTouchListener,IGestureLi
       if(e2.getAction()==MotionEvent.ACTION_DOWN)
       {
         float diffY = e2.getY() - e1.getY();
-        Log.d("tendiz","TOUCH DOWN>>>"+diffY);
 
       }
       boolean result = false;

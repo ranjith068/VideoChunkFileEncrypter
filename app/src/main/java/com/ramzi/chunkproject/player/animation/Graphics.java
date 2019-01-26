@@ -4,7 +4,7 @@ package com.ramzi.chunkproject.player.animation;
 import android.graphics.Path;
 import android.support.annotation.NonNull;
 /**
- * Created by oliveboard on 25/1/19.
+ * Created by voltella on 25/1/19.
  *
  * @auther Ramesh M Nair
  */

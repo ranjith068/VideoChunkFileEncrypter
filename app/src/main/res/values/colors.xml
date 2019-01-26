@@ -9,4 +9,5 @@
     <color name="grey">#73859f</color>
     <color name="text_gray">#666666</color>
     <color name="text_gray_light">#cccccc</color>
+    <color name="video_overlay_color">#64000000</color>
 </resources>

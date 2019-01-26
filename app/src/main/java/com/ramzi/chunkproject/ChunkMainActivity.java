@@ -50,8 +50,6 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
     TextView selectedVideotextView, statusTextView, selectedChunkFileTextView;
     public static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1001;
     public static final String TAG = "ChunkCreator";
-    String outputDirectory = Environment.getExternalStorageDirectory().toString() + "/";
-    String finalName = "ChunkClip";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,13 +60,7 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
         selectedChunkFileTextView = (TextView) findViewById(R.id.selected_chunk_tv);
         loadFFMpegBinary();
         checkPermisson(ChunkMainActivity.this);
-//        boolean settingsCanWrite = Settings.System.canWrite(getApplicationContext());
-//
-//        if(!settingsCanWrite) {
-//            // If do not have write settings permission then open the Can modify system settings panel.
-//            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-//            startActivity(intent);
-//        }
+
     }
 
     @Override
@@ -158,7 +150,7 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
 //            new FFmpegConversion(ChunkMainActivity.this, getApplicationContext(), videoFile.getAbsolutePath(), 0, HelperUtils.finalDestination(videoFile.getName() + ".partfile")).splitimages();
 //
 //        }
-        startActivity(new Intent(getApplicationContext(),ProgressbarVolumeTest.class));
+//        startActivity(new Intent(getApplicationContext(),ProgressbarVolumeTest.class));
 
     }
 
@@ -175,10 +167,6 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
                         @Override
                         public void onChoosePath(String path, File pathFile) {
                             selectedChunkFileTextView.setText(path);
-                            if (new File(selectedChunkFileTextView.getText().toString()).exists()) {
-                                startActivity(new Intent(getApplicationContext(), DecryptedExoPlayerBackupActivity.class).putExtra("file_dir", selectedChunkFileTextView.getText().toString()));
-                            }
-//                            Toast.makeText(MainActivity.this, "FOLDER: " + path, Toast.LENGTH_SHORT).show();
                         }
                     })
                     .build()
