@@ -133,8 +133,8 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         vPG = findViewById(R.id.volumeProgressBar);
         vIV = findViewById(R.id.volumeImageView);
         toolbarLayer = findViewById(R.id.toolbarLayer);
-
-        byte[] key = CipherCommon.PBKDF2("kolmklja".toCharArray(), CipherCommon.salt);
+        String secertKey= HelperUtils.getInstance().secretToken(getApplicationContext());
+        byte[] key = CipherCommon.PBKDF2(secertKey.toCharArray(), CipherCommon.salt);
         mSecretKeySpec = new SecretKeySpec(key, CipherCommon.AES_ALGORITHM);
         mIvParameterSpec = new IvParameterSpec(CipherCommon.iv);
 

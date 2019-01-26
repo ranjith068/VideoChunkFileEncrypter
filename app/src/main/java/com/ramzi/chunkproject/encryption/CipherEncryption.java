@@ -1,6 +1,8 @@
 package com.ramzi.chunkproject.encryption;
 
+import android.content.Context;
 import android.util.Log;
+import com.ramzi.chunkproject.utils.HelperUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
@@ -20,10 +22,10 @@ import java.io.FileOutputStream;
  */
 public class CipherEncryption {
 
-    public static boolean Encrypt(String fileName)
+    public static boolean Encrypt(String fileName,Context context)
     {
-
-        byte[] key = CipherCommon.PBKDF2("kolmklja".toCharArray(), CipherCommon.salt);
+        String secetKey=HelperUtils.getInstance().secretToken(context);
+        byte[] key = CipherCommon.PBKDF2(secetKey.toCharArray(), CipherCommon.salt);
         SecretKeySpec mSecretKeySpec = new SecretKeySpec(key, CipherCommon.AES_ALGORITHM);
         IvParameterSpec mIvParameterSpec = new IvParameterSpec(CipherCommon.iv);
         Cipher mCipher = null;

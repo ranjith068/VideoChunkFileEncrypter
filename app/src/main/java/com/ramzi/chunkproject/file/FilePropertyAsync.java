@@ -44,6 +44,7 @@ public class FilePropertyAsync extends AsyncTask<Void,Void,Void> {
             prop.setProperty("part_count", (totalFileParts+1) + "");
             prop.setProperty("video_length", videoLength + "");
             prop.setProperty("fileextention",extention);
+            prop.setProperty("filekey",chunkFileDir.getName().replaceAll(" ",""));
             propertyFile = new File(chunkFileDir.getAbsoluteFile(), chunkFileDir.getName() + ".cfg");
             FileOutputStream fos = null;
             try {

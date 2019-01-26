@@ -250,7 +250,7 @@ public class FFmpegConversion implements EncryptionCallback {
 
                         conversionCallback.conversionStatus("Completed,Going for encryption Please wait...");
 
-                        new EncryptionAsync(fileoutPut, part, (lastStartTime + HelperUtils.SECOUND_TO_SPLIT), FFmpegConversion.this).execute();
+                        new EncryptionAsync(context,fileoutPut, part, (lastStartTime + HelperUtils.SECOUND_TO_SPLIT), FFmpegConversion.this).execute();
 
                     }
 
