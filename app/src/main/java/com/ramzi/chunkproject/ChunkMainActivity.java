@@ -30,11 +30,14 @@ import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedExceptio
 import com.obsez.android.lib.filechooser.ChooserDialog;
 import com.ramzi.chunkproject.conversion.FFmpegConversion;
 import com.ramzi.chunkproject.conversion.interfaces.ConversionCallback;
+import com.ramzi.chunkproject.encryption.CipherDecryption;
+import com.ramzi.chunkproject.encryption.CipherEncryption;
 import com.ramzi.chunkproject.utils.Constants;
 import com.ramzi.chunkproject.utils.FFmpegOutputUtil;
 import com.ramzi.chunkproject.utils.HelperUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.LinkedList;
@@ -145,18 +148,24 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
 
     public void startChunkFrameConversion(View v) {
 
-//        final File videoFile = new File(selectedVideotextView.getText().toString());
-//        if (videoFile.exists()) {
+        final File videoFile = new File("/storage/emulated/0/lio.cfg.enc");
+        if (videoFile.exists()) {
+//            try {
+//                CipherDecryption.PropertyFileDecrypt(videoFile.getAbsolutePath(),getApplicationContext());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
 //            new FFmpegConversion(ChunkMainActivity.this, getApplicationContext(), videoFile.getAbsolutePath(), 0, HelperUtils.finalDestination(videoFile.getName() + ".partfile")).splitimages();
-//
-//        }
+
+        }
 //        startActivity(new Intent(getApplicationContext(),ProgressbarVolumeTest.class));
+
 
     }
 
 
     public void selectChunkFile(View v) {
-
+//        CipherEncryption.Encrypt("/storage/emulated/0/lio.cfg",getApplicationContext(),true);
         if (new File(Environment.getExternalStorageDirectory() +
                 File.separator + Constants.CHUNKDIR).exists()) {
             new ChooserDialog().with(this)

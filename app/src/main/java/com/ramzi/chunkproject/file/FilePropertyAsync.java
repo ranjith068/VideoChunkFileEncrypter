@@ -1,5 +1,6 @@
 package com.ramzi.chunkproject.file;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
@@ -25,13 +26,15 @@ public class FilePropertyAsync extends AsyncTask<Void,Void,Void> {
     EncryptionCallback encryptionCallback;
     boolean encrypted=false;
     String extention;
-    public FilePropertyAsync(String chunkFileDirName,int totalFileParts,long videoLength,EncryptionCallback encryptionCallback,String extention)
+    Context context;
+    public FilePropertyAsync(Context context,String chunkFileDirName, int totalFileParts, long videoLength, EncryptionCallback encryptionCallback, String extention)
     {
         chunkFileDir=new File(chunkFileDirName);
         this.totalFileParts=totalFileParts;
         this.videoLength=videoLength;
         this.encryptionCallback=encryptionCallback;
         this.extention=extention;
+        this.context=context;
     }
 
     @Override
@@ -63,9 +66,16 @@ public class FilePropertyAsync extends AsyncTask<Void,Void,Void> {
                 e.printStackTrace();
             }
         }
-//        if(propertyFile!=null&&propertyFile.exists()) {
-//            encrypted= CipherEncryption.Encrypt(propertyFile.getAbsolutePath());
-//        }
+        if(propertyFile!=null&&propertyFile.exists()) {
+            encrypted= CipherEncryption.Encrypt(propertyFile.getAbsolutePath(),context,true);
+        }
+        if(encrypted)
+        {
+            if(propertyFile.exists())
+            {
+                propertyFile.delete();
+            }
+        }
         return null;
     }
 
@@ -74,7 +84,7 @@ public class FilePropertyAsync extends AsyncTask<Void,Void,Void> {
         super.onPostExecute(aVoid);
         Log.d("Overrr","Wrotted");
 
-            encryptionCallback.propertyResult(true);
+            encryptionCallback.propertyResult(encrypted);
 
     }
 }

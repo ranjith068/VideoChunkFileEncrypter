@@ -22,9 +22,18 @@ import java.io.FileOutputStream;
  */
 public class CipherEncryption {
 
-    public static boolean Encrypt(String fileName,Context context)
-    {
-        String secetKey=HelperUtils.getInstance().secretToken(context);
+    public static boolean Encrypt(String fileName,Context context,boolean isProperty)
+    {  String secetKey=null;
+        if(isProperty)
+        {
+             secetKey=(new StringBuilder()).append(HelperUtils.getInstance().secretToken(context)).toString();
+
+        }
+        else
+        {
+             secetKey=HelperUtils.getInstance().secretToken(context);
+        }
+
         byte[] key = CipherCommon.PBKDF2(secetKey.toCharArray(), CipherCommon.salt);
         SecretKeySpec mSecretKeySpec = new SecretKeySpec(key, CipherCommon.AES_ALGORITHM);
         IvParameterSpec mIvParameterSpec = new IvParameterSpec(CipherCommon.iv);

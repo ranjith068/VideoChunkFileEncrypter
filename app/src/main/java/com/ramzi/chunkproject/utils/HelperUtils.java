@@ -132,7 +132,7 @@ public class HelperUtils {
                 Settings.Secure.ANDROID_ID);
          if(androidId==null)
          {
-             androidId="kolmklja";
+             return Constants.BASIC_CIPHER_KEY;
          }
          Log.d("KEY",androidId+">>>");
          return androidId;

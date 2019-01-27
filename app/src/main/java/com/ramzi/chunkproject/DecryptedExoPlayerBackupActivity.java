@@ -197,7 +197,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
 
         File chunkFileDirectory = new File(getIntent().getExtras().getString("file_dir"));
-        new GatheringFilePiecesAsync(chunkFileDirectory, DecryptedExoPlayerBackupActivity.this, dataSourceFactory, extractorsFactory).execute();
+        new GatheringFilePiecesAsync(getApplicationContext(),chunkFileDirectory, DecryptedExoPlayerBackupActivity.this, dataSourceFactory, extractorsFactory).execute();
         play = PlayIconDrawable.builder()
                 .withColor(Color.WHITE)
                 .withInterpolator(new FastOutSlowInInterpolator())

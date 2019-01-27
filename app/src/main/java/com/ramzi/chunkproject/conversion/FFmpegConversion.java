@@ -276,7 +276,7 @@ public class FFmpegConversion implements EncryptionCallback {
             else
             {
                 conversionCallback.conversionStatus("All chunk files has been encrypted writing file property Please wait....");
-                new FilePropertyAsync(destinationDirectory,totalPart,videoLength,FFmpegConversion.this,HelperUtils.getFileExtention(input)).execute();
+                new FilePropertyAsync(context,destinationDirectory,totalPart,videoLength,FFmpegConversion.this,HelperUtils.getFileExtention(input)).execute();
 
             }
         } else {
