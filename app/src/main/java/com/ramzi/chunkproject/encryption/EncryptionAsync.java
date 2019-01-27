@@ -1,5 +1,6 @@
 package com.ramzi.chunkproject.encryption;
 
+import android.content.Context;
 import android.os.AsyncTask;
 
 import java.io.File;
@@ -18,13 +19,15 @@ public class EncryptionAsync extends AsyncTask<Void,Void,Void> {
     public boolean encryptionStatus=false;
     int filePart;
     long nextChunkStartTime;
+    Context mContext;
 
-    public EncryptionAsync(String filePath,int filePart,long nextChunkStartTime,EncryptionCallback encryptionCallback)
+    public EncryptionAsync(Context mContext,String filePath,int filePart,long nextChunkStartTime,EncryptionCallback encryptionCallback)
     {
         this.filePath=filePath;
         this.encryptionCallback=encryptionCallback;
         this.nextChunkStartTime=nextChunkStartTime;
         this.filePart=filePart;
+        this.mContext=mContext;
 
     }
     @Override
@@ -33,7 +36,7 @@ public class EncryptionAsync extends AsyncTask<Void,Void,Void> {
         File chunkFile=new File(filePath);
         if(chunkFile.exists())
         {
-            encryptionStatus=CipherEncryption.Encrypt(filePath);
+            encryptionStatus=CipherEncryption.Encrypt(chunkFile,mContext,false);
 
 
         }
