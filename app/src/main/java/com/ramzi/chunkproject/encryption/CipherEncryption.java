@@ -11,6 +11,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -22,8 +23,10 @@ import java.io.FileOutputStream;
  */
 public class CipherEncryption {
 
-    public static boolean Encrypt(String fileName,Context context,boolean isProperty)
-    {  String secetKey=null;
+    public static boolean Encrypt(File chunkFileDir, Context context, boolean isProperty)
+    {
+        String fileName=chunkFileDir.getAbsolutePath();
+        String secetKey=null;
         if(isProperty)
         {
              secetKey=(new StringBuilder()).append(HelperUtils.getInstance().secretToken(context)).toString();
@@ -31,8 +34,9 @@ public class CipherEncryption {
         }
         else
         {
-             secetKey=HelperUtils.getInstance().secretToken(context);
+             secetKey=(new StringBuilder()).append(HelperUtils.getInstance().secretToken(context)).append(chunkFileDir.getParentFile().getName().replaceAll(" ","")).toString();
         }
+        Log.d("encryption olakz",secetKey);
 
         byte[] key = CipherCommon.PBKDF2(secetKey.toCharArray(), CipherCommon.salt);
         SecretKeySpec mSecretKeySpec = new SecretKeySpec(key, CipherCommon.AES_ALGORITHM);

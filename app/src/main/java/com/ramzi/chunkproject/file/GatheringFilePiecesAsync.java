@@ -4,18 +4,26 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
+import com.ramzi.chunkproject.encryption.CipherCommon;
 import com.ramzi.chunkproject.encryption.CipherDecryption;
 import com.ramzi.chunkproject.player.MediaFileCallback;
+import com.ramzi.chunkproject.player.encryptionsource.EncryptedFileDataSourceFactory;
 import com.ramzi.chunkproject.utils.Constants;
+import com.ramzi.chunkproject.utils.HelperUtils;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -30,21 +38,25 @@ import java.util.Properties;
 public class GatheringFilePiecesAsync extends AsyncTask<Void, Void, Void> {
 
     ConcatenatingMediaSource mediaSource;
-    MediaFileCallback mediaFileCallback;
+//    MediaFileCallback mediaFileCallback;
     File chunkFileDir;
-    DataSource.Factory dataSourceFactory;
-    ExtractorsFactory extractorsFactory;
+//    DataSource.Factory dataSourceFactory;
+//    ExtractorsFactory extractorsFactory;
     String filename;
     long videoLength;
     int filecount;
     Context context;
 
-    public GatheringFilePiecesAsync(Context context,File chunkFileDir, MediaFileCallback mediaFileCallback, DataSource.Factory dataSourceFactory, ExtractorsFactory extractorsFactory) {
+
+    private Cipher mCipher;
+    private SecretKeySpec mSecretKeySpec;
+    private IvParameterSpec mIvParameterSpec;
+    private MediaFileCallback mediaFileCallback;
+
+    public GatheringFilePiecesAsync(Context context,File chunkFileDir, MediaFileCallback mediaFileCallback) {
         this.chunkFileDir = chunkFileDir;
-        this.mediaFileCallback = mediaFileCallback;
-        this.extractorsFactory = extractorsFactory;
-        this.dataSourceFactory = dataSourceFactory;
         this.context=context;
+        this.mediaFileCallback=mediaFileCallback;
     }
 
     @Override
@@ -64,10 +76,10 @@ public class GatheringFilePiecesAsync extends AsyncTask<Void, Void, Void> {
 //            }
             PropertyData prop = null;
             try {
-                String propertyData=CipherDecryption.PropertyFileDecrypt(propertyFile.getAbsolutePath(),context);
+                String propertyData=CipherDecryption.PropertyFileDecrypt(propertyFile,context);
                 Log.d("TAG",propertyData);
                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                 prop=gson.fromJson(propertyData, PropertyData.class);
+                prop=gson.fromJson(propertyData, PropertyData.class);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -78,6 +90,22 @@ public class GatheringFilePiecesAsync extends AsyncTask<Void, Void, Void> {
                 videoLength = prop.videoLength;
                 String fileExtention = prop.extention;
                 Log.d("i gat",fileExtention);
+
+                String secertKey= (new StringBuilder()).append(HelperUtils.getInstance().secretToken(context)).append(prop.filekey).toString();
+                Log.d("decrypt olakz",secertKey);
+                byte[] key = CipherCommon.PBKDF2(secertKey.toCharArray(), CipherCommon.salt);
+                mSecretKeySpec = new SecretKeySpec(key, CipherCommon.AES_ALGORITHM);
+                mIvParameterSpec = new IvParameterSpec(CipherCommon.iv);
+
+                try {
+                    mCipher = Cipher.getInstance(CipherCommon.AES_TRANSFORMATION);
+                    mCipher.init(Cipher.DECRYPT_MODE, mSecretKeySpec, mIvParameterSpec);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+                DataSource.Factory dataSourceFactory = new EncryptedFileDataSourceFactory(mCipher, mSecretKeySpec, mIvParameterSpec, bandwidthMeter);
+                ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
                 MediaSource[] mediaSourcesToLoad = new MediaSource[filecount];
                 for (int i = 0; i < filecount; i++) {
                     Uri uri = Uri.fromFile(new File(chunkFileDir.getAbsoluteFile(), i + fileExtention + ".enc"));
@@ -115,6 +143,8 @@ public class GatheringFilePiecesAsync extends AsyncTask<Void, Void, Void> {
         public Long videoLength;
         @SerializedName("part_count")
         public int fileCount;
+        @SerializedName("f_key")
+        public String filekey="";
 
     }
 }

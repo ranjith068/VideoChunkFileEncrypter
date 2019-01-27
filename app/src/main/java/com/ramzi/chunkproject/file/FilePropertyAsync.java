@@ -67,7 +67,7 @@ public class FilePropertyAsync extends AsyncTask<Void,Void,Void> {
             }
         }
         if(propertyFile!=null&&propertyFile.exists()) {
-            encrypted= CipherEncryption.Encrypt(propertyFile.getAbsolutePath(),context,true);
+            encrypted= CipherEncryption.Encrypt(propertyFile,context,true);
         }
         if(encrypted)
         {

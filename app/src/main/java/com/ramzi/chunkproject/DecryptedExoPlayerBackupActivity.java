@@ -2,6 +2,7 @@ package com.ramzi.chunkproject;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.media.AudioManager;
@@ -9,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.ColorInt;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.app.AppCompatActivity;
@@ -62,13 +64,10 @@ import static com.ramzi.chunkproject.utils.HelperUtils.SECOUND_TO_SPLIT;
 public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implements Player.EventListener, MediaFileCallback {
 
 
-    private Cipher mCipher;
-    private SecretKeySpec mSecretKeySpec;
-    private IvParameterSpec mIvParameterSpec;
 
     SimpleExoPlayer player;
     private PlayerView mExoPlayerView;
-    RelativeLayout mainContainer;
+    ConstraintLayout mainContainer;
 
 
     AppCompatSeekBar seekBar;
@@ -103,13 +102,14 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     AudioReactor audioReactor;
     int maxVolume = 0;
     final Handler hideControl = new Handler();
+    ProgressDialog progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         playerPrefrence = new AppPreferences(getApplicationContext(), Constants.BASE_PREF);
         if (playerPrefrence.getFloat(Constants.BRIGHTNESS_FLOAT_PREF) != -100f) {
             WindowManager.LayoutParams lp = getWindow().getAttributes();
@@ -133,17 +133,6 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         vPG = findViewById(R.id.volumeProgressBar);
         vIV = findViewById(R.id.volumeImageView);
         toolbarLayer = findViewById(R.id.toolbarLayer);
-        String secertKey= HelperUtils.getInstance().secretToken(getApplicationContext());
-        byte[] key = CipherCommon.PBKDF2(secertKey.toCharArray(), CipherCommon.salt);
-        mSecretKeySpec = new SecretKeySpec(key, CipherCommon.AES_ALGORITHM);
-        mIvParameterSpec = new IvParameterSpec(CipherCommon.iv);
-
-        try {
-            mCipher = Cipher.getInstance(CipherCommon.AES_TRANSFORMATION);
-            mCipher.init(Cipher.DECRYPT_MODE, mSecretKeySpec, mIvParameterSpec);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         seekBar.setMax(100);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -165,14 +154,15 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
             public void onStopTrackingTouch(SeekBar seekBar) {
 
                 isSeeking = false;
+                if (hideControl != null) {
+                    callDelay();
+                }
             }
 
         });
 
 
-        DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-        DataSource.Factory dataSourceFactory = new EncryptedFileDataSourceFactory(mCipher, mSecretKeySpec, mIvParameterSpec, bandwidthMeter);
-        ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+
         setUpGestureControls();
         initExoPlayer();
 
@@ -197,7 +187,12 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
 
         File chunkFileDirectory = new File(getIntent().getExtras().getString("file_dir"));
-        new GatheringFilePiecesAsync(getApplicationContext(),chunkFileDirectory, DecryptedExoPlayerBackupActivity.this, dataSourceFactory, extractorsFactory).execute();
+        progress = new ProgressDialog(this);
+        progress.setMessage("Gathering file please wait....");
+        progress.setCancelable(false);
+        progress.setCanceledOnTouchOutside(false);
+        progress.show();
+        new GatheringFilePiecesAsync(getApplicationContext(),chunkFileDirectory, DecryptedExoPlayerBackupActivity.this).execute();
         play = PlayIconDrawable.builder()
                 .withColor(Color.WHITE)
                 .withInterpolator(new FastOutSlowInInterpolator())
@@ -306,6 +301,10 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
     @Override
     public void onMediaFileRecieve(ConcatenatingMediaSource mediaSource, String filename, long totalTime, int totalIndex) {
+        if(progress!=null&&!isFinishing())
+        {
+            progress.dismiss();
+        }
         if (mediaSource != null) {
             if (mExoPlayerView != null && player != null) {
                 totalLength = totalTime;
@@ -314,14 +313,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
                 loadPlayer();
                 if (hideControl != null) {
-                    hideControl.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            hideSystemUi();
-                            playerControlLayer.setVisibility(View.GONE);
-                            toolbarLayer.setVisibility(View.GONE);
-                        }
-                    }, 2000);
+                   callDelay();
                 }
                /* player.prepare(mediaSource);
                 play.animateToState(PlayIconDrawable.IconState.PAUSE);
@@ -333,9 +325,27 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
     }
 
+    private void callDelay() {
+        hideControl.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(!isSeeking) {
+                    hideSystemUi();
+                    playerControlLayer.setVisibility(View.GONE);
+                    toolbarLayer.setVisibility(View.GONE);
+                }
+            }
+        }, 2000);
+    }
+
     @Override
     public void onMediaFileRecieve(boolean status) {
+        if(progress!=null&&!isFinishing())
+        {
+            progress.dismiss();
+        }
         Toast.makeText(getApplicationContext(), "Gathering files failed", Toast.LENGTH_SHORT).show();
+        finish();
 
     }
 
@@ -547,15 +557,16 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
             } else {
                 playerControlLayer.setVisibility(View.VISIBLE);
                 toolbarLayer.setVisibility(View.VISIBLE);
-//                showSystemUi();
-                hideControl.postDelayed(new Runnable() {
+                showSystemUi();
+                callDelay();
+           /*     hideControl.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         hideSystemUi();
                         playerControlLayer.setVisibility(View.GONE);
                         toolbarLayer.setVisibility(View.GONE);
                     }
-                }, 2000);
+                }, 2000);*/
             }
         }
 

@@ -10,10 +10,7 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Created by voltella on 17/1/19.
@@ -22,7 +19,8 @@ import java.io.IOException;
  */
 public class CipherDecryption {
 
-    public static String PropertyFileDecrypt(String fileName, Context context) throws IOException {
+    public static String PropertyFileDecrypt(File chunkFileDir, Context context) throws IOException {
+        String fileName=chunkFileDir.getAbsolutePath();
         String jsonFormat="{";
         String secetKey=(new StringBuilder()).append(HelperUtils.getInstance().secretToken(context)).toString();
 
@@ -74,10 +72,15 @@ public class CipherDecryption {
                 {
                     jsonFormat=jsonFormat+"\"file_name\":"+"\""+lines[i].replaceAll("filename=","")+"\""+",";
                 }
+                if(lines[i].contains("filekey="))
+                {
+                    jsonFormat=jsonFormat+"\"f_key\":"+"\""+lines[i].replaceAll("filekey=","")+"\""+",";
+                }
                 if(lines[i].contains("fileextention="))
                 {
                     jsonFormat=jsonFormat+"\"f_ext\":"+"\""+lines[i].replaceAll("fileextention=","")+"\"";
                 }
+
 
             }
             jsonFormat=jsonFormat+"}";

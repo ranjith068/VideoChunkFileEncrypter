@@ -36,7 +36,7 @@ public class EncryptionAsync extends AsyncTask<Void,Void,Void> {
         File chunkFile=new File(filePath);
         if(chunkFile.exists())
         {
-            encryptionStatus=CipherEncryption.Encrypt(filePath,mContext,false);
+            encryptionStatus=CipherEncryption.Encrypt(chunkFile,mContext,false);
 
 
         }
