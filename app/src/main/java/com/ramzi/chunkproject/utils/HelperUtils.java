@@ -1,6 +1,8 @@
 package com.ramzi.chunkproject.utils;
 
+import android.content.Context;
 import android.os.Environment;
+import android.provider.Settings;
 import android.util.Log;
 
 import java.io.File;
@@ -122,5 +124,17 @@ public class HelperUtils {
                 +currentSeekingTime+"\n index:"+index+"-----"+"indexseek "+currentseekValue);
 
 
+    }
+
+    public String secretToken(Context context)
+    {
+         String androidId = Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+         if(androidId==null)
+         {
+             return Constants.BASIC_CIPHER_KEY;
+         }
+         Log.d("KEY",androidId+">>>");
+         return androidId;
     }
 }
