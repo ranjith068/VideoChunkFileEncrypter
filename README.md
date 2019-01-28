@@ -15,7 +15,7 @@ VideoChunkEncryption will convert video files to different pieces and encrypt th
 
 ## Exoplayer
  
-   Exo player is used to  play the decrypt the chunk files and play in real time.Some basic customization has added to exo player, so i call this custumized player as **Crypto Player**. 
+   Exo player is used to  play the decrypt the chunk files and play in real time.Some basic customization has added to exo player, so i call this customized player as **Crypto Player**. 
 
 ## VideoPreview
 
