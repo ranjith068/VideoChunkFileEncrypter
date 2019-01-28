@@ -23,8 +23,8 @@ VideoChunkEncryption will convert video files to different pieces and encrypt th
 
 ## Sample Apk
 
-**v1**
-[apk](https://raw.githubusercontent.com/rameshvoltella/VideoChunkFileEncrypter/release_1/screenfiles/apk.v1.apk)
+**v1.**
+[apk](https://github.com/rameshvoltella/VideoChunkFileEncrypter/blob/release_1/screenfiles/apk/v1.apk?raw=true)
 
 ## Screens Shots
 
