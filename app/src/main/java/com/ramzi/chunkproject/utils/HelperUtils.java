@@ -15,8 +15,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class HelperUtils {
 
-    public static long SECOUND_TO_SPLIT=60000;
-    public static String SECOUND_TO_SPLIT_TIMESTAMP="00:01:00";
+    /**Currently splitting as 1 min you can increase as per the usage
+      */
+    public static long SECOUND_TO_SPLIT=60000;//in millesecound 1 min = 60000
     private static HelperUtils instance;
     public static HelperUtils getInstance() {
         if (instance == null) {
@@ -25,7 +26,9 @@ public class HelperUtils {
         return instance;
     }
 
-
+    /**
+     * return fileextention
+     * */
     public static String getFileExtention(String filePath)
     {
         if(filePath.substring(filePath.lastIndexOf(".")).contains("avi"))
@@ -35,7 +38,9 @@ public class HelperUtils {
         return filePath.substring(filePath.lastIndexOf("."));
     }
 
-
+    /**
+     * return directory to save the files
+     * */
     public static String finalDestination(String directory)
     {
         File finalStorage =new File(Environment.getExternalStorageDirectory()+File.separator+Constants.CHUNKDIR+File.separator+directory);
@@ -46,7 +51,9 @@ public class HelperUtils {
         return finalStorage.getAbsolutePath();
     }
 
-
+    /**
+     * return timestamp
+     * */
     public static String getStartTimeStamp(long millis)
     {
 
@@ -55,7 +62,9 @@ public class HelperUtils {
                 TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
     }
 
-
+    /**
+     * return duration in millesecound
+     * */
     public static long getTheDurationInMillsecound(String duration)
     {
         Log.d("getDuration","BEFORE"+duration);
@@ -126,6 +135,10 @@ public class HelperUtils {
 
     }
 
+    /**
+     * Get the device id as scret key
+     * important this is just for sample purpose yoy can make you own logic for this
+     * */
     public String secretToken(Context context)
     {
          String androidId = Settings.Secure.getString(context.getContentResolver(),
@@ -134,7 +147,6 @@ public class HelperUtils {
          {
              return Constants.BASIC_CIPHER_KEY;
          }
-         Log.d("KEY",androidId+">>>");
          return androidId;
     }
 }

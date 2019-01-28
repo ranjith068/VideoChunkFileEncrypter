@@ -1,10 +1,5 @@
 package com.ramzi.chunkproject.player.animation;
 
-/**
- * Created by voltella on 25/1/19.
- *
- * @auther Ramesh M Nair
- */
 import android.animation.Animator;
 import android.animation.TimeInterpolator;
 import android.content.Context;
