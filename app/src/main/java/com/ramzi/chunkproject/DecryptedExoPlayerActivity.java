@@ -696,30 +696,31 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
         @Override
         public void brightness(int value) {
             Log.d("Brigthnesss", value + ">>>");
+            if (!gestureSeek) {
+                brPG.incrementProgressBy(value);
+                float currentProgressPercent =
+                        (float) brPG.getProgress() / maxGestureLength;
+                WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
+                layoutParams.screenBrightness = currentProgressPercent;
+                getWindow().setAttributes(layoutParams);
+                if (playerPrefrence != null) {
+                    playerPrefrence.saveFloatData(Constants.BRIGHTNESS_FLOAT_PREF, currentProgressPercent);
 
-            brPG.incrementProgressBy(value);
-            float currentProgressPercent =
-                    (float) brPG.getProgress() / maxGestureLength;
-            WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
-            layoutParams.screenBrightness = currentProgressPercent;
-            getWindow().setAttributes(layoutParams);
-            if (playerPrefrence != null) {
-                playerPrefrence.saveFloatData(Constants.BRIGHTNESS_FLOAT_PREF, currentProgressPercent);
+                }
+                if (DEBUG) Log.d(TAG, "onScroll().brightnessControl, currentBrightness = " + currentProgressPercent);
 
-            }
-            if (DEBUG) Log.d(TAG, "onScroll().brightnessControl, currentBrightness = " + currentProgressPercent);
+                final int resId =
+                        currentProgressPercent < 0.25 ? R.drawable.ic_brightness_low_white_72dp
+                                : currentProgressPercent < 0.75 ? R.drawable.ic_brightness_medium_white_72dp
+                                : R.drawable.ic_brightness_high_white_72dp;
 
-            final int resId =
-                    currentProgressPercent < 0.25 ? R.drawable.ic_brightness_low_white_72dp
-                            : currentProgressPercent < 0.75 ? R.drawable.ic_brightness_medium_white_72dp
-                            : R.drawable.ic_brightness_high_white_72dp;
+                brIV.setImageDrawable(
+                        AppCompatResources.getDrawable(getApplicationContext(), resId)
+                );
 
-            brIV.setImageDrawable(
-                    AppCompatResources.getDrawable(getApplicationContext(), resId)
-            );
-
-            if (brView.getVisibility() != View.VISIBLE) {
-                animateView(brView, SCALE_AND_ALPHA, true, 200);
+                if (brView.getVisibility() != View.VISIBLE) {
+                    animateView(brView, SCALE_AND_ALPHA, true, 200);
+                }
             }
         }
 
@@ -729,33 +730,35 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
         @Override
         public void volume(int value) {
 
-            Log.d(TAG, value + ">>>>>");
-            vPG.incrementProgressBy(value);
-            float currentProgressPercent =
-                    (float) vPG.getProgress() / maxGestureLength;
-            int currentVolume = (int) (maxVolume * currentProgressPercent);
-            if (audioReactor != null) {
-                Log.d(TAG, currentVolume + ">>>>chappa" + maxVolume);
-                audioReactor.setVolume(currentVolume);
-            }
+//            Log.d(TAG, value + ">>>>>");
+            if (!gestureSeek) {
+                vPG.incrementProgressBy(value);
+                float currentProgressPercent =
+                        (float) vPG.getProgress() / maxGestureLength;
+                int currentVolume = (int) (maxVolume * currentProgressPercent);
+                if (audioReactor != null) {
+                    Log.d(TAG, currentVolume + ">>>>chappa" + maxVolume);
+                    audioReactor.setVolume(currentVolume);
+                }
 
-            if (DEBUG) Log.d(TAG, "onScroll().volumeControl, currentVolume = " + currentVolume);
+                if (DEBUG) Log.d(TAG, "onScroll().volumeControl, currentVolume = " + currentVolume);
 
-            final int resId =
-                    currentProgressPercent <= 0 ? R.drawable.ic_volume_off_white_72dp
-                            : currentProgressPercent < 0.25 ? R.drawable.ic_volume_mute_white_72dp
-                            : currentProgressPercent < 0.75 ? R.drawable.ic_volume_down_white_72dp
-                            : R.drawable.ic_volume_up_white_72dp;
+                final int resId =
+                        currentProgressPercent <= 0 ? R.drawable.ic_volume_off_white_72dp
+                                : currentProgressPercent < 0.25 ? R.drawable.ic_volume_mute_white_72dp
+                                : currentProgressPercent < 0.75 ? R.drawable.ic_volume_down_white_72dp
+                                : R.drawable.ic_volume_up_white_72dp;
 
-            vIV.setImageDrawable(
-                    AppCompatResources.getDrawable(getApplicationContext(), resId)
-            );
+                vIV.setImageDrawable(
+                        AppCompatResources.getDrawable(getApplicationContext(), resId)
+                );
 
-            if (volumeView.getVisibility() != View.VISIBLE) {
-                animateView(volumeView, SCALE_AND_ALPHA, true, 200);
-            }
-            if (brView.getVisibility() == View.VISIBLE) {
-                brView.setVisibility(View.GONE);
+                if (volumeView.getVisibility() != View.VISIBLE) {
+                    animateView(volumeView, SCALE_AND_ALPHA, true, 200);
+                }
+                if (brView.getVisibility() == View.VISIBLE) {
+                    brView.setVisibility(View.GONE);
+                }
             }
         }
 
