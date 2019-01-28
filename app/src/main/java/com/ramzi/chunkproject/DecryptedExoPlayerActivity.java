@@ -449,13 +449,13 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
             if (play != null) {
                 play.animateToState(PlayIconDrawable.IconState.PLAY);
             }
-
-            player.setPlayWhenReady(false);
             try {
                 player.seekTo(0, 0);
             } catch (IllegalSeekPositionException e) {
 
             }
+            player.setPlayWhenReady(false);
+
             seekBar.setProgress(0);
             if (mHandler != null) {
 
@@ -464,6 +464,12 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
         } else if (playbackState == Player.STATE_BUFFERING) {
             if (loadingProgressbar != null) {
                 loadingProgressbar.setVisibility(View.VISIBLE);
+            }
+
+        }
+        else if (playbackState == Player.STATE_READY) {
+            if (loadingProgressbar != null) {
+                loadingProgressbar.setVisibility(View.GONE);
             }
 
         }
