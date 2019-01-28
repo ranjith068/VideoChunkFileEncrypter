@@ -3,6 +3,7 @@ package com.ramzi.chunkproject.utils;
 /**
  * Created by voltella on 21/1/19.
  *
+ * Get the metadata of the file via  ffmpeg
  * @auther Ramesh M Nair
  */
 

@@ -1,3 +1,27 @@
+/**
+ * The MIT License (MIT)
+ * <p>
+ * Copyright (c) 2019 Ramesh M Nair
+ * <p>
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.ramzi.chunkproject.conversion;
 
 import android.content.Context;
@@ -20,10 +44,15 @@ import java.util.List;
 
 /**
  * Created by voltella on 21/1/19.
+ * <p>
+ * FFMeg convertion here video file is split and converted to smaller pieces
  *
  * @auther Ramesh M Nair
  */
 public class FFmpegConversion implements EncryptionCallback {
+
+    /*initializing variables*/
+
     public ConversionCallback conversionCallback;
 
     public static final String TAG = "FFmpegConversion";
@@ -40,7 +69,7 @@ public class FFmpegConversion implements EncryptionCallback {
         this.conversionCallback = conversionCallback;
         this.context = context;
         this.input = input;
-        this.videoLength=videoLength;
+        this.videoLength = videoLength;
         totalPart = (int) Math.round(videoLength / HelperUtils.SECOUND_TO_SPLIT);
         this.destinationDirectory = destinationDirectory;
 
@@ -49,9 +78,9 @@ public class FFmpegConversion implements EncryptionCallback {
 
     }
 
+    /*will use in upcomming versions this for splitting video thump nails*/
 
-    public void splitimages()
-    {
+    public void splitimages() {
 //        ffmpeg -i video.webm -vf fps=1 thumb%04d.jpg -hide_banner
 //        ffmpeg -i video.webm -vf fps=1/5 thumb%04d.jpg -hide_banner
         commandList.clear();
@@ -128,20 +157,14 @@ public class FFmpegConversion implements EncryptionCallback {
     public void spliteTimeAndStart(int part, long startTime) {
 
 
-        commandList.clear();
-      /*  commandList.add("-i");
-        commandList.add(input);
-        commandList.add("-acodec");
-        commandList.add("copy");
-        commandList.add("-vcodec");
-        commandList.add("copy");
-        commandList.add("-ss");
-        commandList.add(HelperUtils.getStartTimeStamp(startTime));
-        commandList.add("-t");
-        commandList.add(HelperUtils.SECOUND_TO_SPLIT_TIMESTAMP);
-        commandList.add(destinationDirectory+"/"+part+HelperUtils.getFileExtention(input));*/
-
 //        $ ffmpeg -i source.mkv -ss 01:02:37.754 -map_chapters -1 -c:v libx264-c:a copy -crf 18 -t 00:04:52.292 output.mkv
+
+        /**
+         *
+         * *We are adding comment via list because if
+         * we add it as string white space and special characters makes issue for safe execution this is best way
+         */
+        commandList.clear();
         commandList.add("-i");
         commandList.add(input);
         commandList.add("-ss");
@@ -159,6 +182,29 @@ public class FFmpegConversion implements EncryptionCallback {
         commandList.add("-t");
         commandList.add(HelperUtils.SECOUND_TO_SPLIT_TIMESTAMP);
         commandList.add(destinationDirectory + "/" + part + HelperUtils.getFileExtention(input));
+
+        String[] command = commandList.toArray(new String[commandList.size()]);
+        if (command.length != 0) {
+            Log.d(TAG, "cmd " + command.toString());
+
+            execFFmpegBinary(command, part, totalPart, startTime, destinationDirectory + "/" + part + HelperUtils.getFileExtention(input));
+        } else {
+        }
+
+        /*  commented following ffmpeg cmd for future releases
+
+        commandList.add("-i");
+        commandList.add(input);
+        commandList.add("-acodec");
+        commandList.add("copy");
+        commandList.add("-vcodec");
+        commandList.add("copy");
+        commandList.add("-ss");
+        commandList.add(HelperUtils.getStartTimeStamp(startTime));
+        commandList.add("-t");
+        commandList.add(HelperUtils.SECOUND_TO_SPLIT_TIMESTAMP);
+        commandList.add(destinationDirectory+"/"+part+HelperUtils.getFileExtention(input));*/
+
 
         //ffmpeg -i input.mp4 -vcodec copy -acodec copy -copyinkf -ss 00:36:18 -to 00:39:50 output.mp4
 
@@ -188,18 +234,12 @@ public class FFmpegConversion implements EncryptionCallback {
 //        commandList.add("0");
 //        commandList.add(destinationDirectory+"/"+part+HelperUtils.getFileExtention(input));
 
-        String[] command = commandList.toArray(new String[commandList.size()]);
-        if (command.length != 0) {
-            Log.d(TAG, "commentzzz " + command.toString());
-
-            execFFmpegBinary(command, part, totalPart, startTime, destinationDirectory + "/" + part + HelperUtils.getFileExtention(input));
-        } else {
-//            Toast.makeText(ChunkMainActivity.this, getString(R.string.empty_command_toast), Toast.LENGTH_LONG).show();
-        }
 
     }
 
-
+    /**
+     *cmd excecution of the video conversion
+     * */
     private void execFFmpegBinary(final String[] command, final int part, final int totalPart, final long lastStartTime, final String fileoutPut) {
         try {
             FFmpeg.getInstance(context).execute(command, new ExecuteBinaryResponseHandler() {
@@ -250,7 +290,7 @@ public class FFmpegConversion implements EncryptionCallback {
 
                         conversionCallback.conversionStatus("Completed,Going for encryption Please wait...");
 
-                        new EncryptionAsync(context,fileoutPut, part, (lastStartTime + HelperUtils.SECOUND_TO_SPLIT), FFmpegConversion.this).execute();
+                        new EncryptionAsync(context, fileoutPut, part, (lastStartTime + HelperUtils.SECOUND_TO_SPLIT), FFmpegConversion.this).execute();
 
                     }
 
@@ -260,23 +300,22 @@ public class FFmpegConversion implements EncryptionCallback {
             // do nothing for now
         }
     }
-
+    /**
+     *status of video part encryption
+     * */
     @Override
     public void encryptionResult(boolean status, int part, long nextChunkFileStartTime) {
         if (status) {
-            if(new File(destinationDirectory + "/" + part + HelperUtils.getFileExtention(input)).exists())
-            {
+            if (new File(destinationDirectory + "/" + part + HelperUtils.getFileExtention(input)).exists()) {
                 new File(destinationDirectory + "/" + part + HelperUtils.getFileExtention(input)).delete();
             }
-            if(part<totalPart) {
+            if (part < totalPart) {
 
                 spliteTimeAndStart((part + 1), nextChunkFileStartTime);
 
-            }
-            else
-            {
+            } else {
                 conversionCallback.conversionStatus("All chunk files has been encrypted writing file property Please wait....");
-                new FilePropertyAsync(context,destinationDirectory,totalPart,videoLength,FFmpegConversion.this,HelperUtils.getFileExtention(input)).execute();
+                new FilePropertyAsync(context, destinationDirectory, totalPart, videoLength, FFmpegConversion.this, HelperUtils.getFileExtention(input)).execute();
 
             }
         } else {
@@ -284,16 +323,16 @@ public class FFmpegConversion implements EncryptionCallback {
 
         }
     }
-
+    /**
+     *status of video conversation
+     * */
     @Override
     public void propertyResult(boolean status) {
-        if(status)
-        {
+
+        if (status) {
             conversionCallback.conversionStatus("ALL Process Completed");
 
-        }
-        else
-        {
+        } else {
             conversionCallback.conversionStatus("ALL Process Completed with property file failed");
 
         }

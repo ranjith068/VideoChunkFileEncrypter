@@ -2,7 +2,7 @@ package com.ramzi.chunkproject.utils;
 
 /**
  * Created by voltella on 22/1/19.
- *
+ *  Constant values
  * @auther Ramesh M Nair
  */
 public class Constants {

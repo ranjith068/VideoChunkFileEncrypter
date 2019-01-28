@@ -1,4 +1,27 @@
 package com.ramzi.chunkproject;
+/**
+ * The MIT License (MIT)
+ * <p>
+ * Copyright (c) 2019 Ramesh M Nair
+ * <p>
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -25,8 +48,7 @@ import android.widget.*;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
-import com.google.android.exoplayer2.extractor.ExtractorsFactory;
+
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
@@ -34,22 +56,16 @@ import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.PlayerView;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
-import com.ramzi.chunkproject.encryption.CipherCommon;
+
 import com.ramzi.chunkproject.file.GatheringFilePiecesAsync;
 import com.ramzi.chunkproject.player.MediaFileCallback;
 import com.ramzi.chunkproject.player.animation.PlayIconDrawable;
-import com.ramzi.chunkproject.player.encryptionsource.EncryptedFileDataSourceFactory;
 import com.ramzi.chunkproject.player.gestures.GestureListener;
 import com.ramzi.chunkproject.player.utils.AudioReactor;
 import com.ramzi.chunkproject.utils.AppPreferences;
 import com.ramzi.chunkproject.utils.Constants;
 import com.ramzi.chunkproject.utils.HelperUtils;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
@@ -58,7 +74,6 @@ import static com.ramzi.chunkproject.player.animation.AnimationUtils.Type.SCALE_
 import static com.ramzi.chunkproject.player.animation.AnimationUtils.animateView;
 import static com.ramzi.chunkproject.utils.HelperUtils.SECOUND_TO_SPLIT;
 
-//import com.ramzi.chunkproject.player.PlayerEventListener;
 
 
 public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implements Player.EventListener, MediaFileCallback {
@@ -633,32 +648,28 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
         }
 
-        @Override
-        public void onVerticalScroll(MotionEvent event, float delta) {
-
-        }
 
         @Override
         public void onSwipeRight() {
-            Log.d("tendiz", "Swipe right");
+            Log.d(TAG, "Swipe right");
 
         }
 
         @Override
         public void onSwipeLeft() {
-            Log.d("tendiz", "Swipe left");
+            Log.d(TAG, "Swipe left");
 
         }
 
         @Override
         public void onSwipeBottom() {
-            Log.d("tendiz", "Swipe left");
+            Log.d(TAG, "Swipe left");
 
         }
 
         @Override
         public void onSwipeTop() {
-            Log.d("tendiz", "Swipe left");
+            Log.d(TAG, "Swipe left");
 
         }
 
@@ -695,13 +706,13 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         @Override
         public void volume(int value) {
 
-            Log.d("oldvalue", value + ">>>>>");
+            Log.d(TAG, value + ">>>>>");
             vPG.incrementProgressBy(value);
             float currentProgressPercent =
                     (float) vPG.getProgress() / maxGestureLength;
             int currentVolume = (int) (maxVolume * currentProgressPercent);
             if (audioReactor != null) {
-                Log.d("Chapppa", currentVolume + ">>>>chappa" + maxVolume);
+                Log.d(TAG, currentVolume + ">>>>chappa" + maxVolume);
                 audioReactor.setVolume(currentVolume);
             }
 

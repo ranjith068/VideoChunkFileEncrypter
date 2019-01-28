@@ -1,3 +1,26 @@
+/**
+ * The MIT License (MIT)
+ * <p>
+ * Copyright (c) 2019 Ramesh M Nair
+ * <p>
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.ramzi.chunkproject.file;
 
 import android.content.Context;
@@ -24,11 +47,10 @@ import com.ramzi.chunkproject.utils.HelperUtils;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.Properties;
+
+import static com.ramzi.chunkproject.ChunkMainActivity.TAG;
 
 /**
  * Created by voltella on 22/1/19.
@@ -38,9 +60,9 @@ import java.util.Properties;
 public class GatheringFilePiecesAsync extends AsyncTask<Void, Void, Void> {
 
     ConcatenatingMediaSource mediaSource;
-//    MediaFileCallback mediaFileCallback;
+    //    MediaFileCallback mediaFileCallback;
     File chunkFileDir;
-//    DataSource.Factory dataSourceFactory;
+    //    DataSource.Factory dataSourceFactory;
 //    ExtractorsFactory extractorsFactory;
     String filename;
     long videoLength;
@@ -53,69 +75,81 @@ public class GatheringFilePiecesAsync extends AsyncTask<Void, Void, Void> {
     private IvParameterSpec mIvParameterSpec;
     private MediaFileCallback mediaFileCallback;
 
-    public GatheringFilePiecesAsync(Context context,File chunkFileDir, MediaFileCallback mediaFileCallback) {
+    public GatheringFilePiecesAsync(Context context, File chunkFileDir, MediaFileCallback mediaFileCallback) {
         this.chunkFileDir = chunkFileDir;
-        this.context=context;
-        this.mediaFileCallback=mediaFileCallback;
+        this.context = context;
+        this.mediaFileCallback = mediaFileCallback;
     }
 
     @Override
     protected Void doInBackground(Void... voids) {
+        /*Check for cfg files*/
+        final String[] cfgFileName = {null};
+        chunkFileDir.list((dir, name) -> {
+            if (name.toLowerCase().endsWith(".cfg.enc")) {
+                cfgFileName[0] = name;
 
-//        Properties prop = new Properties();
-//        FileInputStream fis = null;
-        File propertyFile = null;
-        propertyFile = new File(chunkFileDir.getAbsoluteFile(), chunkFileDir.getName() + ".cfg.enc");
-//            fis = new FileInputStream(propertyFile);
-        if(propertyFile!=null&&propertyFile.exists()) {
-//            try {
-//                prop.load(fis);
-//
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-            PropertyData prop = null;
-            try {
-                String propertyData=CipherDecryption.PropertyFileDecrypt(propertyFile,context);
-                Log.d("TAG",propertyData);
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                prop=gson.fromJson(propertyData, PropertyData.class);
-            } catch (IOException e) {
-                e.printStackTrace();
+                return true;
+            } else {
+                return false;
             }
+        });
 
-            try {
-                filename = prop.fileName;
-                filecount = prop.fileCount;
-                videoLength = prop.videoLength;
-                String fileExtention = prop.extention;
-                Log.d("i gat",fileExtention);
+        if (cfgFileName[0] != null) {
+            File propertyFile = null;
+            propertyFile = new File(chunkFileDir.getAbsoluteFile(), cfgFileName[0]);
+            Log.d(TAG, "Yesssss before" + propertyFile.getAbsolutePath());
 
-                String secertKey= (new StringBuilder()).append(HelperUtils.getInstance().secretToken(context)).append(prop.filekey).toString();
-                Log.d("decrypt olakz",secertKey);
-                byte[] key = CipherCommon.PBKDF2(secertKey.toCharArray(), CipherCommon.salt);
-                mSecretKeySpec = new SecretKeySpec(key, CipherCommon.AES_ALGORITHM);
-                mIvParameterSpec = new IvParameterSpec(CipherCommon.iv);
+            if (propertyFile != null && propertyFile.exists()) {
+
+                PropertyData prop = null;
+                try {
+                    String propertyData = CipherDecryption.PropertyFileDecrypt(propertyFile, context);
+                    Log.d("TAG", propertyData);
+                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                    prop = gson.fromJson(propertyData, PropertyData.class);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 try {
-                    mCipher = Cipher.getInstance(CipherCommon.AES_TRANSFORMATION);
-                    mCipher.init(Cipher.DECRYPT_MODE, mSecretKeySpec, mIvParameterSpec);
+                    filename = prop.fileName;
+                    filecount = prop.fileCount;
+                    videoLength = prop.videoLength;
+                    String fileExtention = prop.extention;
+                    /**
+                     * Setting exoplayer with cipher data for real time decryption of files
+                     * */
+                    String secertKey = (new StringBuilder()).append(HelperUtils.getInstance().secretToken(context)).append(prop.filekey).toString();
+                    byte[] key = CipherCommon.PBKDF2(secertKey.toCharArray(), CipherCommon.salt);
+                    mSecretKeySpec = new SecretKeySpec(key, CipherCommon.AES_ALGORITHM);
+                    mIvParameterSpec = new IvParameterSpec(CipherCommon.iv);
+
+                    try {
+                        mCipher = Cipher.getInstance(CipherCommon.AES_TRANSFORMATION);
+                        mCipher.init(Cipher.DECRYPT_MODE, mSecretKeySpec, mIvParameterSpec);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+                    DataSource.Factory dataSourceFactory = new EncryptedFileDataSourceFactory(mCipher, mSecretKeySpec, mIvParameterSpec, bandwidthMeter);
+                    ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+                    MediaSource[] mediaSourcesToLoad = new MediaSource[filecount];
+                    for (int i = 0; i < filecount; i++) {
+                        Uri uri = Uri.fromFile(new File(chunkFileDir.getAbsoluteFile(), i + fileExtention + ".enc"));
+                        mediaSourcesToLoad[i] = new ExtractorMediaSource.Factory(dataSourceFactory).setExtractorsFactory(extractorsFactory)
+                                .createMediaSource(uri);
+
+                    }
+                    /**
+                     * concatenating media files
+                     * */
+                    mediaSource = new ConcatenatingMediaSource(mediaSourcesToLoad);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-                DataSource.Factory dataSourceFactory = new EncryptedFileDataSourceFactory(mCipher, mSecretKeySpec, mIvParameterSpec, bandwidthMeter);
-                ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
-                MediaSource[] mediaSourcesToLoad = new MediaSource[filecount];
-                for (int i = 0; i < filecount; i++) {
-                    Uri uri = Uri.fromFile(new File(chunkFileDir.getAbsoluteFile(), i + fileExtention + ".enc"));
-                    mediaSourcesToLoad[i] = new ExtractorMediaSource.Factory(dataSourceFactory).setExtractorsFactory(extractorsFactory)
-                            .createMediaSource(uri);
-
-                }
-                mediaSource = new ConcatenatingMediaSource(mediaSourcesToLoad);
-            } catch (Exception e) {
-                e.printStackTrace();
+            } else {
+                Log.d("TAG", "PROPERTYFILE NOT FOUND");
             }
         }
 
@@ -127,14 +161,17 @@ public class GatheringFilePiecesAsync extends AsyncTask<Void, Void, Void> {
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
         if (mediaSource != null) {
-            mediaFileCallback.onMediaFileRecieve(mediaSource, filename, videoLength,filecount);
+            mediaFileCallback.onMediaFileRecieve(mediaSource, filename, videoLength, filecount);
         } else {
             mediaFileCallback.onMediaFileRecieve(false);
 
         }
     }
 
-    public class PropertyData{
+    /**
+     * Gson model for property file
+     */
+    public class PropertyData {
         @SerializedName("file_name")
         public String fileName;
         @SerializedName("f_ext")
@@ -144,7 +181,7 @@ public class GatheringFilePiecesAsync extends AsyncTask<Void, Void, Void> {
         @SerializedName("part_count")
         public int fileCount;
         @SerializedName("f_key")
-        public String filekey="";
+        public String filekey = "";
 
     }
 }
