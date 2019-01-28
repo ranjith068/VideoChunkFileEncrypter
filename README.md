@@ -47,7 +47,7 @@ VideoChunkEncryption will convert video files to different pieces and encrypt th
 ![conversion screen](https://raw.githubusercontent.com/rameshvoltella/VideoChunkFileEncrypter/release_1/screenfiles/player.png)
 
 
-**Gesture Seeking**
+**Gesture on screen seeking**
 
 ![seek](https://raw.githubusercontent.com/rameshvoltella/VideoChunkFileEncrypter/release_1/screenfiles/seek.png)
  
