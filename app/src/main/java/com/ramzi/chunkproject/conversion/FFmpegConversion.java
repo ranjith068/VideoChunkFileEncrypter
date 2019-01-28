@@ -41,6 +41,9 @@ import com.ramzi.chunkproject.utils.HelperUtils;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static com.ramzi.chunkproject.utils.HelperUtils.SECOUND_TO_SPLIT;
 
 /**
  * Created by voltella on 21/1/19.
@@ -63,6 +66,8 @@ public class FFmpegConversion implements EncryptionCallback {
     int totalPart;
     String destinationDirectory;
     long videoLength;
+    String secoundTosplit=String.format("%02d", ((SECOUND_TO_SPLIT / 1000) / 60) / 60) + ":" + String.format("%02d", ((SECOUND_TO_SPLIT / 1000) / 60) % 60) + ":" + String.format("%02d", (SECOUND_TO_SPLIT / 1000) % 60);
+
 
 
     public FFmpegConversion(ConversionCallback conversionCallback, Context context, String input, long videoLength, String destinationDirectory) {
@@ -70,7 +75,7 @@ public class FFmpegConversion implements EncryptionCallback {
         this.context = context;
         this.input = input;
         this.videoLength = videoLength;
-        totalPart = (int) Math.round(videoLength / HelperUtils.SECOUND_TO_SPLIT);
+        totalPart = (int) Math.round(videoLength / SECOUND_TO_SPLIT);
         this.destinationDirectory = destinationDirectory;
 
 
@@ -155,6 +160,7 @@ public class FFmpegConversion implements EncryptionCallback {
 
 
     public void spliteTimeAndStart(int part, long startTime) {
+      Log.d("Dynamicttm",""+secoundTosplit);
 
 
 //        $ ffmpeg -i source.mkv -ss 01:02:37.754 -map_chapters -1 -c:v libx264-c:a copy -crf 18 -t 00:04:52.292 output.mkv
@@ -180,7 +186,7 @@ public class FFmpegConversion implements EncryptionCallback {
 //        commandList.add("-crf");
 //        commandList.add("300");//18
         commandList.add("-t");
-        commandList.add(HelperUtils.SECOUND_TO_SPLIT_TIMESTAMP);
+        commandList.add(secoundTosplit);
         commandList.add(destinationDirectory + "/" + part + HelperUtils.getFileExtention(input));
 
         String[] command = commandList.toArray(new String[commandList.size()]);
@@ -290,7 +296,7 @@ public class FFmpegConversion implements EncryptionCallback {
 
                         conversionCallback.conversionStatus("Completed,Going for encryption Please wait...");
 
-                        new EncryptionAsync(context, fileoutPut, part, (lastStartTime + HelperUtils.SECOUND_TO_SPLIT), FFmpegConversion.this).execute();
+                        new EncryptionAsync(context, fileoutPut, part, (lastStartTime + SECOUND_TO_SPLIT), FFmpegConversion.this).execute();
 
                     }
 

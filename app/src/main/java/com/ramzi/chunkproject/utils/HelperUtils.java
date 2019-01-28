@@ -16,9 +16,8 @@ import java.util.concurrent.TimeUnit;
 public class HelperUtils {
 
     /**Currently splitting as 1 min you can increase as per the usage
-      * SECOUND_TO_SPLIT_TIMESTAMP and SECOUND_TO_SPLIT should change equally based on the type*/
+      */
     public static long SECOUND_TO_SPLIT=60000;//in millesecound 1 min = 60000
-    public static String SECOUND_TO_SPLIT_TIMESTAMP="00:01:00";//if you set SECOUND_TO_SPLIT to 2 min =120000 SECOUND_TO_SPLIT_TIMESTAMP should be 00:02:00
     private static HelperUtils instance;
     public static HelperUtils getInstance() {
         if (instance == null) {

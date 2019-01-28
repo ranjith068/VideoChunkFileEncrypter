@@ -46,6 +46,7 @@ import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.*;
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.IllegalSeekPositionException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 
@@ -89,6 +90,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
     PlayIconDrawable play;
     RelativeLayout playerControlLayer;
     LinearLayout toolbarLayer;
+    ProgressBar loadingProgressbar;
 
     long totalLength;
     boolean isPlayer = false;
@@ -154,6 +156,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
         vPG = findViewById(R.id.volumeProgressBar);
         vIV = findViewById(R.id.volumeImageView);
         toolbarLayer = findViewById(R.id.toolbarLayer);
+        loadingProgressbar = findViewById(R.id.progressBar_cyclic);
 
         seekBar.setMax(100);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -399,8 +402,11 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 
         Log.d("Value>>>>", currentProgress + " datatata \nTotalTime :" + totalLength + "\n Current Time : "
                 + currentSeekingTime + "\n index:" + index + "-----" + "indexseek " + currentIndexSeekValue);
+        try {
+            player.seekTo(index, currentIndexSeekValue);
+        } catch (IllegalSeekPositionException e) {
 
-        player.seekTo(index, currentIndexSeekValue);
+        }
 
 
     }
@@ -426,28 +432,42 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
 
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-
+        Log.d("Ststs", playbackState + ">>>");
         isPlayer = playWhenReady;
         if (playWhenReady && playbackState == Player.STATE_READY) {
 
             mHandler = new Handler();
             mHandler.post(updateProgressAction);
+            if (loadingProgressbar != null) {
+                loadingProgressbar.setVisibility(View.GONE);
+            }
 
-        }
-
-        if (playbackState == Player.STATE_ENDED) {
+        } else if (playbackState == Player.STATE_ENDED) {
+            if (loadingProgressbar != null) {
+                loadingProgressbar.setVisibility(View.GONE);
+            }
             if (play != null) {
                 play.animateToState(PlayIconDrawable.IconState.PLAY);
             }
 
             player.setPlayWhenReady(false);
-            player.seekTo(0, 0);
+            try {
+                player.seekTo(0, 0);
+            } catch (IllegalSeekPositionException e) {
+
+            }
             seekBar.setProgress(0);
             if (mHandler != null) {
 
                 mHandler.removeCallbacks(updateProgressAction);
             }
+        } else if (playbackState == Player.STATE_BUFFERING) {
+            if (loadingProgressbar != null) {
+                loadingProgressbar.setVisibility(View.VISIBLE);
+            }
+
         }
+
 
     }
 
@@ -506,10 +526,11 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
     public void back(View view) {
         finish();
     }
+
     /**
-     **Gesture Listener of player
+     * *Gesture Listener of player
      * detection for brightness,volume and on screen seek
-     * */
+     */
     private class ExVidPlayerGestureListener extends GestureListener {
         ExVidPlayerGestureListener(Context ctx, View rootview) {
             super(ctx, rootview);
@@ -529,7 +550,7 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
                 } else if (motionEvent.getAction() == 1) {
                     if (player != null) {
                         try {
-                            Log.d(TAG ,gestureSeekPosition + "yes got ne2222w index" + gestureSeekIndex);
+                            Log.d(TAG, gestureSeekPosition + "yes got ne2222w index" + gestureSeekIndex);
 
                             player.seekTo(gestureSeekIndex, gestureSeekPosition);
                         } catch (Exception e) {
@@ -572,9 +593,10 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
         }
 
         /**
-         **@param  event pass the events on swipe
+         * *@param  event pass the events on swipe
+         *
          * @param delta the flot value of seeking position on screen
-         * */
+         */
         @Override
         public void onHorizontalScroll(MotionEvent event, float delta) {
             seekStatus.setVisibility(View.VISIBLE);
@@ -601,10 +623,12 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
             }
 
         }
+
         /**
-         **@param  seekValue seek value via gesture seek
-         * @param  forward  check if seek is forward or reverse
-         * */
+         * *@param  seekValue seek value via gesture seek
+         *
+         * @param forward check if seek is forward or reverse
+         */
         private void seekToGesture(long seekValue, boolean forward) {
             Log.d(TAG, "/////////////////////////////////////start////////////////////////////");
 
@@ -665,9 +689,10 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
             Log.d(TAG, "Swipe left");
 
         }
+
         /**
-         **@param  value contain the scroll y value for brightness on left vertical swipe
-         * */
+         * *@param  value contain the scroll y value for brightness on left vertical swipe
+         */
         @Override
         public void brightness(int value) {
             Log.d("Brigthnesss", value + ">>>");
@@ -697,9 +722,10 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
                 animateView(brView, SCALE_AND_ALPHA, true, 200);
             }
         }
-       /**
-       **@param  value contain the scroll y value for volume on right area vertical swipe
-       * */
+
+        /**
+         * *@param  value contain the scroll y value for volume on right area vertical swipe
+         */
         @Override
         public void volume(int value) {
 
@@ -738,7 +764,6 @@ public class DecryptedExoPlayerActivity extends AppCompatActivity implements Pla
             onScrollOver();
         }
     }
-
 
 
     /*Show the system ui*/
