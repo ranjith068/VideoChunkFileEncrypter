@@ -75,9 +75,7 @@ import static com.ramzi.chunkproject.player.animation.AnimationUtils.animateView
 import static com.ramzi.chunkproject.utils.HelperUtils.SECOUND_TO_SPLIT;
 
 
-
-public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implements Player.EventListener, MediaFileCallback {
-
+public class DecryptedExoPlayerActivity extends AppCompatActivity implements Player.EventListener, MediaFileCallback {
 
 
     SimpleExoPlayer player;
@@ -118,6 +116,14 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     int maxVolume = 0;
     final Handler hideControl = new Handler();
     ProgressDialog progress;
+
+    public static final int DEFAULT_CONTROLS_DURATION = 300; // 300 millis
+    private final float MAX_GESTURE_LENGTH = 0.75f;
+
+
+    int pauseIndex;
+    long pausePosition;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -177,7 +183,6 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         });
 
 
-
         setUpGestureControls();
         initExoPlayer();
 
@@ -207,7 +212,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         progress.setCancelable(false);
         progress.setCanceledOnTouchOutside(false);
         progress.show();
-        new GatheringFilePiecesAsync(getApplicationContext(),chunkFileDirectory, DecryptedExoPlayerBackupActivity.this).execute();
+        new GatheringFilePiecesAsync(getApplicationContext(), chunkFileDirectory, DecryptedExoPlayerActivity.this).execute();
         play = PlayIconDrawable.builder()
                 .withColor(Color.WHITE)
                 .withInterpolator(new FastOutSlowInInterpolator())
@@ -288,7 +293,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     }
 
     private void setUpGestureControls() {
-        mExoPlayerView.setOnTouchListener(new ExVidPlayerGestureListener(DecryptedExoPlayerBackupActivity.this, mExoPlayerView));
+        mExoPlayerView.setOnTouchListener(new ExVidPlayerGestureListener(DecryptedExoPlayerActivity.this, mExoPlayerView));
         mExoPlayerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -316,8 +321,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
     @Override
     public void onMediaFileRecieve(ConcatenatingMediaSource mediaSource, String filename, long totalTime, int totalIndex) {
-        if(progress!=null&&!isFinishing())
-        {
+        if (progress != null && !isFinishing()) {
             progress.dismiss();
         }
         if (mediaSource != null) {
@@ -328,7 +332,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
                 loadPlayer();
                 if (hideControl != null) {
-                   callDelay();
+                    callDelay();
                 }
                /* player.prepare(mediaSource);
                 play.animateToState(PlayIconDrawable.IconState.PAUSE);
@@ -344,10 +348,11 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         hideControl.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if(!isSeeking) {
+                if (!isSeeking) {
+                    hideControl();
                     hideSystemUi();
-                    playerControlLayer.setVisibility(View.GONE);
-                    toolbarLayer.setVisibility(View.GONE);
+//                    playerControlLayer.setVisibility(View.GONE);
+//                    toolbarLayer.setVisibility(View.GONE);
                 }
             }
         }, 2000);
@@ -355,8 +360,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
     @Override
     public void onMediaFileRecieve(boolean status) {
-        if(progress!=null&&!isFinishing())
-        {
+        if (progress != null && !isFinishing()) {
             progress.dismiss();
         }
         Toast.makeText(getApplicationContext(), "Gathering files failed", Toast.LENGTH_SHORT).show();
@@ -404,14 +408,18 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (player != null) {
-            player.setPlayWhenReady(false);
-            player.stop();
+        try {
+            if (player != null) {
+                player.setPlayWhenReady(false);
+                player.stop();
 //            exoPlayer.seekTo(0);
-        }
+            }
 
-        if (mHandler != null) {
-            mHandler.removeCallbacks(updateProgressAction);
+            if (mHandler != null) {
+                mHandler.removeCallbacks(updateProgressAction);
+            }
+        } catch (IllegalArgumentException e) {
+
         }
     }
 
@@ -488,30 +496,9 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     }
 
     public void changeTimeTextView(long milliSec) {
-//       long hour= TimeUnit.MILLISECONDS.toHours(millesecound);
-        long sec = (milliSec / 1000) % 60;
-        long min = ((milliSec / 1000) / 60) % 60;
-        long hour = ((milliSec / 1000) / 60) / 60;
-//        long sec = (totalLength/1000) % 60;
-//        long min = ((totalLength/1000) / 60) % 60;
-//        long hour = ((totalLength/1000) / 60) / 60;
-        String secd = "" + (milliSec / 1000) % 60;
-        String mind = "" + ((milliSec / 1000) / 60) % 60;
-        String hourd = "" + ((milliSec / 1000) / 60) / 60;
-        if (sec < 10) {
-            secd = "0" + secd;
-        }
-        if (min < 10) {
-            mind = "0" + mind;
-        }
-        if (hour < 10) {
-            hourd = "0" + hourd;
-        }
-        String currentTImestamp = hourd + ":" + mind + ":" + secd;
 
-        timeText.setText(currentTImestamp + "/" + totalTimeStamp);
-//        timeText.setText((hour>10)?hour:"0"+hour);
-//       timeText.setText(((milliSec/1000) / 60) / 60>0?((milliSec/1000) / 60) / 60:"0"+((milliSec/1000) / 60) / 60+":"+TimeUnit.MILLISECONDS.toMinutes(millesecound)+":"+TimeUnit.MILLISECONDS.toSeconds(millesecound));
+        timeText.setText(String.format("%02d", ((milliSec / 1000) / 60) / 60) + ":" + String.format("%02d", ((milliSec / 1000) / 60) % 60) + ":" + String.format("%02d", (milliSec / 1000) % 60) + "/" + totalTimeStamp);
+
     }
 
     int currentIndex = 0;
@@ -519,7 +506,10 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
     public void back(View view) {
         finish();
     }
-
+    /**
+     **Gesture Listener of player
+     * detection for brightness,volume and on screen seek
+     * */
     private class ExVidPlayerGestureListener extends GestureListener {
         ExVidPlayerGestureListener(Context ctx, View rootview) {
             super(ctx, rootview);
@@ -533,17 +523,17 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
                 seekStatus.setVisibility(View.GONE);
 
                 if (motionEvent.getAction() == 0) {
-                    Log.d("get>>>", "yes got new index" + currentIndex);
+                    Log.d(TAG, "yes got new index" + currentIndex);
 
 
                 } else if (motionEvent.getAction() == 1) {
                     if (player != null) {
                         try {
-                            Log.d("get>>>", gestureSeekPosition + "yes got ne2222w index" + gestureSeekIndex);
+                            Log.d(TAG ,gestureSeekPosition + "yes got ne2222w index" + gestureSeekIndex);
 
                             player.seekTo(gestureSeekIndex, gestureSeekPosition);
                         } catch (Exception e) {
-                            Log.d("get>>>", "yes error");
+                            Log.d(TAG, "yes error");
 
 //                            player.seekTo(gestureSeekIndex, totalLength - (gestureSeekIndex * SECOUND_TO_SPLIT) - 1000);
 
@@ -560,9 +550,10 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
         @Override
         public void onTap() {
+
             if (playerControlLayer.getVisibility() == View.VISIBLE) {
-                playerControlLayer.setVisibility(View.GONE);
-                toolbarLayer.setVisibility(View.GONE);
+
+                hideControl();
                 hideSystemUi();
                 try {
                     hideControl.removeCallbacksAndMessages(null);
@@ -570,22 +561,20 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
 
                 }
             } else {
-                playerControlLayer.setVisibility(View.VISIBLE);
-                toolbarLayer.setVisibility(View.VISIBLE);
+
+                showControl();
                 showSystemUi();
                 callDelay();
-           /*     hideControl.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        hideSystemUi();
-                        playerControlLayer.setVisibility(View.GONE);
-                        toolbarLayer.setVisibility(View.GONE);
-                    }
-                }, 2000);*/
+
             }
+            showControl();
+
         }
 
-
+        /**
+         **@param  event pass the events on swipe
+         * @param delta the flot value of seeking position on screen
+         * */
         @Override
         public void onHorizontalScroll(MotionEvent event, float delta) {
             seekStatus.setVisibility(View.VISIBLE);
@@ -593,28 +582,31 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
             currentIndex = player.getCurrentWindowIndex();
 
             pausePlayer();
-            Log.d("tendiz", screenWidth + "swiping horizontaly" + delta + ">>>>motion" + event.getAction());
+            Log.d(TAG, screenWidth + "swiping horizontaly" + delta + ">>>>motion" + event.getAction());
 
             long perscreen = SECOUND_TO_SPLIT / screenWidth;
 
 
             if (delta * perscreen < 0) {
                 seekStatus.setText("-" + TimeUnit.MILLISECONDS.toSeconds((long) (0 - (delta * perscreen))));
-                Log.d("tendiz", delta * perscreen + "Scroll to incrise= Minus" + (SECOUND_TO_SPLIT + (delta * perscreen)));
+                Log.d(TAG, delta * perscreen + "Scroll to incrise= Minus" + (SECOUND_TO_SPLIT + (delta * perscreen)));
 
                 seekToGesture((long) (0 - (delta * perscreen)), false);
 
             } else {
-                Log.d("tendiz", perscreen + "Scroll to incrise= Adding " + delta * perscreen);
+                Log.d(TAG, perscreen + "Scroll to incrise= Adding " + delta * perscreen);
                 seekStatus.setText("+" + TimeUnit.MILLISECONDS.toSeconds((long) (delta * perscreen)));
                 seekToGesture((long) (delta * perscreen), true);
 
             }
 
         }
-
+        /**
+         **@param  seekValue seek value via gesture seek
+         * @param  forward  check if seek is forward or reverse
+         * */
         private void seekToGesture(long seekValue, boolean forward) {
-            Log.d("gesturerchunk", "/////////////////////////////////////start////////////////////////////");
+            Log.d(TAG, "/////////////////////////////////////start////////////////////////////");
 
 
             long currentPosition;
@@ -643,6 +635,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
                 newIndexSeekValue = currentPosition - (SECOUND_TO_SPLIT * index);
 
             }
+            /*Save gesture index and position to play when touch is realsed*/
             gestureSeekIndex = index;
             gestureSeekPosition = newIndexSeekValue;
 
@@ -672,7 +665,9 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
             Log.d(TAG, "Swipe left");
 
         }
-
+        /**
+         **@param  value contain the scroll y value for brightness on left vertical swipe
+         * */
         @Override
         public void brightness(int value) {
             Log.d("Brigthnesss", value + ">>>");
@@ -702,7 +697,9 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
                 animateView(brView, SCALE_AND_ALPHA, true, 200);
             }
         }
-
+       /**
+       **@param  value contain the scroll y value for volume on right area vertical swipe
+       * */
         @Override
         public void volume(int value) {
 
@@ -742,6 +739,9 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         }
     }
 
+
+
+    /*Show the system ui*/
     private void showSystemUi() {
         if (DEBUG) Log.d(TAG, "showSystemUi() called");
 
@@ -765,6 +765,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
+    /*Hide the system ui*/
     private void hideSystemUi() {
         if (DEBUG) Log.d(TAG, "hideSystemUi() called");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -780,8 +781,10 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         }
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
     }
 
+    /*Pause the player*/
     private void pausePlayer() {
         if (player != null) {
             if (play != null) {
@@ -793,6 +796,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         }
     }
 
+    /*Start the player*/
     private void startPlayer() {
         if (player != null) {
             if (play != null) {
@@ -804,7 +808,7 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         }
     }
 
-
+    /*Load the exo player*/
     private void loadPlayer() {
 
         if (mediaMergeSource != null) {
@@ -830,11 +834,8 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         }
     }
 
-    int pauseIndex;
-    long pausePosition;
 
-    private final float MAX_GESTURE_LENGTH = 0.75f;
-
+    /*Hide the volume and brightness view after in active touch*/
     private void onScrollOver() {
         if (DEBUG) Log.d(TAG, "onScrollEnd() called");
 
@@ -845,10 +846,9 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
             animateView(brView, SCALE_AND_ALPHA, false, 200, 200);
         }
 
-//        if (playerImpl.isControlsVisible() && playerImpl.getCurrentState() == STATE_PLAYING) {
-//            playerImpl.hideControls(DEFAULT_CONTROLS_DURATION, DEFAULT_CONTROLS_HIDE_TIME);
-//        }
     }
+
+    /*Initiate the gesture value of volume and brightness if player have history*/
 
     private void setInitialGestureValues() {
         if (audioReactor != null) {
@@ -863,14 +863,20 @@ public class DecryptedExoPlayerBackupActivity extends AppCompatActivity implemen
         }
     }
 
+    /*Animation to hide the show views*/
+    public void showControl() {
+        if (playerControlLayer != null && toolbarLayer != null) {
+            animateView(playerControlLayer, true, DEFAULT_CONTROLS_DURATION);
 
-    public void hideControl()
-    {
-        if (playerControlLayer.getVisibility() == View.VISIBLE) {
-            animateView(playerControlLayer, SCALE_AND_ALPHA, false, 400, 200);
+            animateView(toolbarLayer, true, DEFAULT_CONTROLS_DURATION);
         }
-        if (toolbarLayer.getVisibility() == View.VISIBLE) {
-            animateView(toolbarLayer, SCALE_AND_ALPHA, false, 400, 200);
+    }
+    /*Animation to hide the control views*/
+
+    public void hideControl() {
+        if (playerControlLayer != null && toolbarLayer != null) {
+            animateView(playerControlLayer, false, DEFAULT_CONTROLS_DURATION, 0);
+            animateView(toolbarLayer, false, DEFAULT_CONTROLS_DURATION, 0);
         }
     }
 }

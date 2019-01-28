@@ -35,7 +35,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -53,18 +52,11 @@ import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedExceptio
 import com.obsez.android.lib.filechooser.ChooserDialog;
 import com.ramzi.chunkproject.conversion.FFmpegConversion;
 import com.ramzi.chunkproject.conversion.interfaces.ConversionCallback;
-import com.ramzi.chunkproject.encryption.CipherDecryption;
-import com.ramzi.chunkproject.encryption.CipherEncryption;
 import com.ramzi.chunkproject.utils.Constants;
 import com.ramzi.chunkproject.utils.FFmpegOutputUtil;
 import com.ramzi.chunkproject.utils.HelperUtils;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -216,7 +208,7 @@ public class ChunkMainActivity extends AppCompatActivity implements ConversionCa
     public void startPlayChunk(View v) {
 
         if (new File(selectedChunkFileTextView.getText().toString()).exists()) {
-            startActivity(new Intent(getApplicationContext(), DecryptedExoPlayerBackupActivity.class).putExtra("file_dir", selectedChunkFileTextView.getText().toString()));
+            startActivity(new Intent(getApplicationContext(), DecryptedExoPlayerActivity.class).putExtra("file_dir", selectedChunkFileTextView.getText().toString()));
         }
 
     }
